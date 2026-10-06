@@ -1,0 +1,16 @@
+{
+  "name": "queueflow-docs",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Documentation site for QueueFlow, served at docs.queueflow.dev",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "sync-spec": "cp ../queueflow-core-rs/spec/openapi.json spec/openapi.json",
+    "dev": "node scripts/build.mjs && npx -y serve dist"
+  },
+  "devDependencies": {
+    "highlight.js": "^11.11.0",
+    "marked": "^16.0.0"
+  }
+}

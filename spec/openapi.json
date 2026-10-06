@@ -1,0 +1,3276 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "QueueFlow API",
+    "description": "REST API for QueueFlow, a PostgreSQL-native distributed job queue and workflow engine.",
+    "contact": {
+      "name": "QueueFlow",
+      "url": "https://queueflow.dev"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Local development"
+    },
+    {
+      "url": "https://api.queueflow.dev",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/api/v1/cron": {
+      "get": {
+        "tags": [
+          "cron"
+        ],
+        "operationId": "listCrons",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status (e.g. `pending`, `completed`).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "queue",
+            "in": "query",
+            "description": "Filter by queue name (jobs only).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size, 1..=100 (default 50).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of records to skip (default 0).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "order_by",
+            "in": "query",
+            "description": "`created_at ASC` or `created_at DESC` (default DESC).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "include_total",
+            "in": "query",
+            "description": "Include the exact `total` count in the response (default false; the\ncount is an extra full scan over the filtered set).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque keyset cursor from a previous page's `next_cursor`. When set,\n`offset` is ignored and listing continues where that page ended.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_after",
+            "in": "query",
+            "description": "Only rows created at or after this instant (RFC 3339, inclusive).\nWith `created_before` this forms the half-open range `[after, before)`\n— the natural shape for walking history period by period.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "created_before",
+            "in": "query",
+            "description": "Only rows created strictly before this instant (RFC 3339, exclusive).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of cron schedules (`status`/`queue` filters do not apply)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListCronsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "cron"
+        ],
+        "operationId": "createCron",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCronRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Schedule created; first firing is the next occurrence (UTC)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCronResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request (e.g. a bad cron expression)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A schedule with this name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cron/{id}": {
+      "get": {
+        "tags": [
+          "cron"
+        ],
+        "operationId": "getCron",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Cron schedule id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cron schedule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CronSchedule"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "cron"
+        ],
+        "operationId": "deleteCron",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Cron schedule id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted; already-enqueued jobs are unaffected"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cron/{id}/pause": {
+      "post": {
+        "tags": [
+          "cron"
+        ],
+        "operationId": "pauseCron",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Cron schedule id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Paused: no further firings until resumed"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cron/{id}/resume": {
+      "post": {
+        "tags": [
+          "cron"
+        ],
+        "operationId": "resumeCron",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Cron schedule id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Resumed: fires at its next future occurrence (missed runs are not caught up)"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/dlq": {
+      "get": {
+        "tags": [
+          "dlq"
+        ],
+        "operationId": "listDeadLetters",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status (e.g. `pending`, `completed`).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "queue",
+            "in": "query",
+            "description": "Filter by queue name (jobs only).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size, 1..=100 (default 50).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of records to skip (default 0).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "order_by",
+            "in": "query",
+            "description": "`created_at ASC` or `created_at DESC` (default DESC).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "include_total",
+            "in": "query",
+            "description": "Include the exact `total` count in the response (default false; the\ncount is an extra full scan over the filtered set).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque keyset cursor from a previous page's `next_cursor`. When set,\n`offset` is ignored and listing continues where that page ended.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_after",
+            "in": "query",
+            "description": "Only rows created at or after this instant (RFC 3339, inclusive).\nWith `created_before` this forms the half-open range `[after, before)`\n— the natural shape for walking history period by period.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "created_before",
+            "in": "query",
+            "description": "Only rows created strictly before this instant (RFC 3339, exclusive).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of dead letters, newest first (the `status` filter does not apply)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListDeadLettersResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/dlq/{id}": {
+      "get": {
+        "tags": [
+          "dlq"
+        ],
+        "operationId": "getDeadLetter",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Dead letter id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dead letter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeadLetter"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/dlq/{id}/replay": {
+      "post": {
+        "tags": [
+          "dlq"
+        ],
+        "operationId": "replayDeadLetter",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Dead letter id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "A fresh job was created from the dead-lettered one (same task/payload/queue/config; workflow linkage is not resurrected)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplayDeadLetterResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found (the entry, or its original job after retention)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Already replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/jobs": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "listJobs",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status (e.g. `pending`, `completed`).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "queue",
+            "in": "query",
+            "description": "Filter by queue name (jobs only).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size, 1..=100 (default 50).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of records to skip (default 0).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "order_by",
+            "in": "query",
+            "description": "`created_at ASC` or `created_at DESC` (default DESC).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "include_total",
+            "in": "query",
+            "description": "Include the exact `total` count in the response (default false; the\ncount is an extra full scan over the filtered set).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque keyset cursor from a previous page's `next_cursor`. When set,\n`offset` is ignored and listing continues where that page ended.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_after",
+            "in": "query",
+            "description": "Only rows created at or after this instant (RFC 3339, inclusive).\nWith `created_before` this forms the half-open range `[after, before)`\n— the natural shape for walking history period by period.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "created_before",
+            "in": "query",
+            "description": "Only rows created strictly before this instant (RFC 3339, exclusive).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListJobsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "createJob",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Optional client-supplied key making this create idempotent per tenant: retrying with the same key returns the original job instead of creating a duplicate.",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateJobRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Job created (or replayed idempotently)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/jobs/batch": {
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "createBatchJobs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBatchJobsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Jobs created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBatchJobsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/jobs/{id}": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "getJob",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Job id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/jobs/{id}/cancel": {
+      "post": {
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "cancelJob",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Job id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Cancelled"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/jobs/{id}/complete": {
+      "post": {
+        "tags": [
+          "worker"
+        ],
+        "operationId": "completeJob",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Job id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteJobRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Completed (idempotent: replaying against an already-finished job also succeeds)"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but not with the worker credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Lease no longer held (expired and reclaimed)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/jobs/{id}/events": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Stream a job's status transitions as Server-Sent Events until it reaches a\nterminal state. Lets clients await completion without polling the REST\nendpoint themselves.",
+        "operationId": "streamJobEvents",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Job id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SSE stream; each `status` event carries the full job JSON. Closes after the job reaches a terminal state.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/jobs/{id}/fail": {
+      "post": {
+        "tags": [
+          "worker"
+        ],
+        "operationId": "failJob",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Job id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FailJobRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Failure recorded; the job is retried or dead-lettered per its config"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but not with the worker credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Lease no longer held (expired and reclaimed)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/jobs/{id}/heartbeat": {
+      "post": {
+        "tags": [
+          "worker"
+        ],
+        "operationId": "heartbeatJob",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Job id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HeartbeatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Current job status. `running` = lease extended; anything else (e.g. `cancelled`) = not extended, stop working on the job.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeartbeatResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but not with the worker credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Lease no longer held (expired and reclaimed)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/queues/{queue}/lease": {
+      "post": {
+        "tags": [
+          "worker"
+        ],
+        "operationId": "leaseJobs",
+        "parameters": [
+          {
+            "name": "queue",
+            "in": "path",
+            "description": "Queue to lease from",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaseJobsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Zero or more leased jobs (empty if none became available within wait_secs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaseJobsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but not with the worker credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/stats": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "operationId": "getStats",
+        "responses": {
+          "200": {
+            "description": "Engine counters. Process-local and reset on restart: in a split api/worker deployment this reflects only the process serving the request; query the database for fleet-wide history.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatsSnapshot"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tasks": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "operationId": "listTasks",
+        "responses": {
+          "200": {
+            "description": "Registered task handlers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TasksResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/workflows": {
+      "get": {
+        "tags": [
+          "workflows"
+        ],
+        "operationId": "listWorkflows",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status (e.g. `pending`, `completed`).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "queue",
+            "in": "query",
+            "description": "Filter by queue name (jobs only).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size, 1..=100 (default 50).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of records to skip (default 0).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "order_by",
+            "in": "query",
+            "description": "`created_at ASC` or `created_at DESC` (default DESC).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "include_total",
+            "in": "query",
+            "description": "Include the exact `total` count in the response (default false; the\ncount is an extra full scan over the filtered set).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque keyset cursor from a previous page's `next_cursor`. When set,\n`offset` is ignored and listing continues where that page ended.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "created_after",
+            "in": "query",
+            "description": "Only rows created at or after this instant (RFC 3339, inclusive).\nWith `created_before` this forms the half-open range `[after, before)`\n— the natural shape for walking history period by period.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "created_before",
+            "in": "query",
+            "description": "Only rows created strictly before this instant (RFC 3339, exclusive).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of workflows",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListWorkflowsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "workflows"
+        ],
+        "operationId": "createWorkflow",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkflowRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Workflow created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateWorkflowResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid workflow (e.g. dependency cycle)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/workflows/{id}": {
+      "get": {
+        "tags": [
+          "workflows"
+        ],
+        "operationId": "getWorkflow",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Workflow id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workflow"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/workflows/{id}/cancel": {
+      "post": {
+        "tags": [
+          "workflows"
+        ],
+        "operationId": "cancelWorkflow",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Workflow id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Cancelled"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/workflows/{id}/diagram": {
+      "get": {
+        "tags": [
+          "workflows"
+        ],
+        "operationId": "getWorkflowDiagram",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Workflow id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mermaid diagram of the workflow DAG",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDiagramResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/workflows/{id}/steps": {
+      "get": {
+        "tags": [
+          "workflows"
+        ],
+        "operationId": "getWorkflowStepStates",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Workflow id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Runtime status of every step, in declaration order. The workflow record carries only step definitions; this is the live progress view.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowStepStatesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "operationId": "getReady",
+        "responses": {
+          "200": {
+            "description": "Ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyStatus"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BackoffStrategy": {
+        "type": "string",
+        "description": "How retry delays grow between attempts.",
+        "enum": [
+          "fixed",
+          "linear",
+          "exponential"
+        ]
+      },
+      "CompleteJobRequest": {
+        "type": "object",
+        "description": "Body for `POST /api/v1/jobs/{id}/complete`.",
+        "required": [
+          "lease_token"
+        ],
+        "properties": {
+          "lease_token": {
+            "type": "string",
+            "description": "The lease token returned by the lease call."
+          },
+          "result": {
+            "type": "object",
+            "description": "Handler result, recorded on the job and merged into workflow context.",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateBatchJobsRequest": {
+        "type": "object",
+        "required": [
+          "jobs"
+        ],
+        "properties": {
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateJobRequest"
+            }
+          }
+        }
+      },
+      "CreateBatchJobsResponse": {
+        "type": "object",
+        "required": [
+          "job_ids",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "job_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateCronRequest": {
+        "type": "object",
+        "description": "Request body for creating a cron schedule.",
+        "required": [
+          "name",
+          "cron_expr",
+          "task_name"
+        ],
+        "properties": {
+          "config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JobConfig"
+              }
+            ]
+          },
+          "cron_expr": {
+            "type": "string",
+            "description": "5-field crontab (UTC); 6/7 fields with leading seconds also accepted."
+          },
+          "name": {
+            "type": "string",
+            "description": "Unique per tenant."
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "queue": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "task_name": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateCronResponse": {
+        "type": "object",
+        "required": [
+          "cron_id"
+        ],
+        "properties": {
+          "cron_id": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateJobRequest": {
+        "type": "object",
+        "required": [
+          "task_name"
+        ],
+        "properties": {
+          "config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JobConfigRequest"
+              }
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Arbitrary JSON object passed to the handler.",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "run_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Don't run before this instant (RFC 3339). The job is created\nimmediately but stays invisible to workers until then."
+          },
+          "task_name": {
+            "type": "string",
+            "description": "The registered task handler to invoke."
+          }
+        }
+      },
+      "CreateJobResponse": {
+        "type": "object",
+        "required": [
+          "job_id"
+        ],
+        "properties": {
+          "job_id": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateWorkflowRequest": {
+        "type": "object",
+        "description": "Request body for creating a workflow. Shared by the builder DSL and the API\nso callers and SDKs use the same contract.",
+        "required": [
+          "name",
+          "steps"
+        ],
+        "properties": {
+          "context": {
+            "type": "object",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStep"
+            }
+          }
+        }
+      },
+      "CreateWorkflowResponse": {
+        "type": "object",
+        "required": [
+          "workflow_id"
+        ],
+        "properties": {
+          "workflow_id": {
+            "type": "string"
+          }
+        }
+      },
+      "CronSchedule": {
+        "type": "object",
+        "description": "A recurring enqueue schedule. Expressions are standard 5-field crontab\n(`minute hour day-of-month month day-of-week`), evaluated in **UTC**; a\n6/7-field form with leading seconds is also accepted.",
+        "required": [
+          "id",
+          "name",
+          "cron_expr",
+          "task_name",
+          "enabled",
+          "next_run_at",
+          "created_at"
+        ],
+        "properties": {
+          "config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JobConfig"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "cron_expr": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "last_enqueued_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "name": {
+            "type": "string",
+            "description": "Unique per tenant."
+          },
+          "next_run_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The next instant this schedule fires. Missed occurrences (server\ndown) collapse into at most one catch-up firing."
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "queue_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Queue for the enqueued jobs (the engine default when absent)."
+          },
+          "task_name": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "DeadLetter": {
+        "type": "object",
+        "description": "A dead-lettered job: a terminal failure recorded for inspection and\nreplay. The original job row remains (subject to retention); this entry\ncaptures why it died and, once replayed, which fresh job took its place.",
+        "required": [
+          "id",
+          "job_id",
+          "reason",
+          "created_at"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "error_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "job_id": {
+            "type": "string"
+          },
+          "queue_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why the job dead-lettered: `max_attempts_exceeded`, `non_retryable`,\nor `handler_not_found`."
+          },
+          "replay_job_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The fresh job created by the replay."
+          },
+          "replayed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Set once this entry has been replayed; a dead letter replays at most\nonce."
+          },
+          "task_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tenant_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ErrorBody": {
+        "type": "object",
+        "required": [
+          "error",
+          "timestamp"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FailJobRequest": {
+        "type": "object",
+        "description": "Body for `POST /api/v1/jobs/{id}/fail`.",
+        "required": [
+          "lease_token",
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Human-readable failure reason."
+          },
+          "lease_token": {
+            "type": "string",
+            "description": "The lease token returned by the lease call."
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "Whether the engine may retry (subject to the job's max_retries).\nDefaults to true; send false for permanent failures (e.g. bad input)."
+          }
+        }
+      },
+      "HealthStatus": {
+        "type": "object",
+        "required": [
+          "status",
+          "timestamp",
+          "version"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "HeartbeatRequest": {
+        "type": "object",
+        "description": "Body for `POST /api/v1/jobs/{id}/heartbeat`.",
+        "required": [
+          "lease_token",
+          "extend_secs"
+        ],
+        "properties": {
+          "extend_secs": {
+            "type": "integer",
+            "format": "int32",
+            "description": "New lease duration in seconds, measured from now (1..=3600).",
+            "minimum": 0
+          },
+          "lease_token": {
+            "type": "string",
+            "description": "The lease token returned by the lease call."
+          }
+        }
+      },
+      "HeartbeatResponse": {
+        "type": "object",
+        "description": "Response for `POST /api/v1/jobs/{id}/heartbeat`.",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/JobStatus",
+            "description": "The job's current status. `running` means the lease was extended;\nanything else (`cancelled`, `completed`, ...) means it was not, and\nthe worker should stop working on the job."
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "description": "A single unit of work.",
+        "required": [
+          "id",
+          "queue_name",
+          "task_name",
+          "config",
+          "status",
+          "created_at",
+          "scheduled_at",
+          "retry_count"
+        ],
+        "properties": {
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "config": {
+            "$ref": "#/components/schemas/JobConfig"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "delivery_count": {
+            "type": "integer",
+            "format": "int32",
+            "description": "How many times this job has been claimed (delivered to a worker).\nGreater than `retry_count + 1` means a lease expired without a report —\ni.e. a worker crashed mid-run.",
+            "minimum": 0
+          },
+          "error_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Client-supplied key that makes job creation idempotent per tenant:\nre-submitting the same key returns the original job instead of creating\na duplicate."
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "next_retry_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When this job's next retry becomes claimable (mirrors `scheduled_at`\nwhile the job is `retrying`; kept for audit/inspection)."
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "queue_name": {
+            "type": "string"
+          },
+          "result": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "retry_count": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "scheduled_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the job becomes claimable. `created_at` for immediate jobs, the\nrequested `run_at` for scheduled jobs, and the next backoff instant\nwhile retrying — the durable delay lives in the row itself."
+          },
+          "started_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          },
+          "task_name": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "workflow_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "workflow_step_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The owning workflow step's name (steps are addressed by name)."
+          }
+        }
+      },
+      "JobConfig": {
+        "type": "object",
+        "description": "Per-job execution configuration. All durations are in seconds.\n\nDeserialization is partial-friendly: any omitted field takes its\n[`JobConfig::default`] value (via per-field serde defaults), so\nworkflow-step and cron config overrides can name just the fields they\nchange, and out-of-band rows with sparse `config` JSONB still load.\nPer-field functions rather than a struct-level `#[serde(default)]`:\nthe struct-level form makes utoipa attach a `default` beside the\n`BackoffStrategy` `$ref`, which forces a synthetic wrapper type into\nevery generated SDK.",
+        "properties": {
+          "jitter_factor": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Optional jitter in `0.0..=1.0`. `0.1` => +/-10% randomization of each\nretry delay, which spreads out thundering-herd retries."
+          },
+          "max_retries": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Higher is claimed first within a queue; ties break on `scheduled_at`,\nthen `created_at`."
+          },
+          "retry_backoff": {
+            "$ref": "#/components/schemas/BackoffStrategy"
+          },
+          "retry_delay_secs": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "retry_max_delay_secs": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "timeout_secs": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "JobConfigRequest": {
+        "type": "object",
+        "description": "Optional per-job configuration overrides.",
+        "properties": {
+          "jitter_factor": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Retry-delay jitter in `0.0..=1.0` (e.g. `0.1` = +/-10%)."
+          },
+          "max_retries": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "priority": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Higher is claimed first within a queue (ties: oldest first)."
+          },
+          "queue": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Override the destination queue."
+          },
+          "retry_backoff": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BackoffStrategy",
+                "description": "How retry delays grow between attempts (default exponential)."
+              }
+            ]
+          },
+          "retry_delay_secs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Base retry delay, in seconds.",
+            "minimum": 0
+          },
+          "retry_max_delay_secs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Upper bound on any computed retry delay, in seconds.",
+            "minimum": 0
+          },
+          "timeout": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Per-attempt timeout, in seconds.",
+            "minimum": 0
+          }
+        }
+      },
+      "JobStatus": {
+        "type": "string",
+        "description": "Lifecycle state of a single job.",
+        "enum": [
+          "pending",
+          "running",
+          "completed",
+          "failed",
+          "retrying",
+          "cancelled"
+        ]
+      },
+      "LeaseJobsRequest": {
+        "type": "object",
+        "description": "Body for `POST /api/v1/queues/{queue}/lease`.",
+        "properties": {
+          "lease_secs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Lease duration in seconds (1..=3600, default 30). Heartbeat to extend.",
+            "minimum": 0
+          },
+          "max_jobs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Maximum jobs to lease in one call (1..=100, default 1).",
+            "minimum": 0
+          },
+          "wait_secs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Long-poll wait when the queue is empty, in seconds (0..=30, default 0).",
+            "minimum": 0
+          }
+        }
+      },
+      "LeaseJobsResponse": {
+        "type": "object",
+        "required": [
+          "jobs"
+        ],
+        "properties": {
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeasedJob"
+            }
+          }
+        }
+      },
+      "LeasedJob": {
+        "type": "object",
+        "description": "A job leased to a (possibly remote) worker, together with the lease token\nneeded to heartbeat, complete, or fail it.",
+        "required": [
+          "job",
+          "lease_token"
+        ],
+        "properties": {
+          "job": {
+            "$ref": "#/components/schemas/Job"
+          },
+          "lease_token": {
+            "type": "string",
+            "description": "Opaque, unguessable proof of lease ownership, regenerated on every\nclaim. Pass it back on heartbeat/complete/fail; a stale token (the\nlease expired and the job was reclaimed) is rejected."
+          }
+        }
+      },
+      "ListCronsResponse": {
+        "type": "object",
+        "required": [
+          "crons",
+          "limit",
+          "offset",
+          "has_more"
+        ],
+        "properties": {
+          "crons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CronSchedule"
+            }
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Opaque keyset cursor for the next page (present when `has_more`).\nPass it back as `cursor` to continue where this page ended; cheaper\nthan deep OFFSET paging."
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Exact total match count; only present when `include_total=true`."
+          }
+        }
+      },
+      "ListDeadLettersResponse": {
+        "type": "object",
+        "required": [
+          "dead_letters",
+          "limit",
+          "offset",
+          "has_more"
+        ],
+        "properties": {
+          "dead_letters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeadLetter"
+            }
+          },
+          "has_more": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Opaque keyset cursor for the next page (present when `has_more`).\nPass it back as `cursor` to continue where this page ended; cheaper\nthan deep OFFSET paging."
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Exact total match count; only present when `include_total=true`."
+          }
+        }
+      },
+      "ListJobsResponse": {
+        "type": "object",
+        "required": [
+          "jobs",
+          "limit",
+          "offset",
+          "has_more"
+        ],
+        "properties": {
+          "has_more": {
+            "type": "boolean"
+          },
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Job"
+            }
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Opaque keyset cursor for the next page (present when `has_more`).\nPass it back as `cursor` to continue where this page ended; cheaper\nthan deep OFFSET paging."
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Exact total match count. Only present when the request set\n`include_total=true`; computing it costs a full count over the filtered\nset, so it is opt-in."
+          }
+        }
+      },
+      "ListWorkflowsResponse": {
+        "type": "object",
+        "required": [
+          "workflows",
+          "limit",
+          "offset",
+          "has_more"
+        ],
+        "properties": {
+          "has_more": {
+            "type": "boolean"
+          },
+          "limit": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Opaque keyset cursor for the next page (present when `has_more`).\nPass it back as `cursor` to continue where this page ended; cheaper\nthan deep OFFSET paging."
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Exact total match count; only present when `include_total=true`."
+          },
+          "workflows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Workflow"
+            }
+          }
+        }
+      },
+      "OnFailure": {
+        "type": "string",
+        "description": "What to do with downstream steps when a step fails.",
+        "enum": [
+          "halt",
+          "skip",
+          "continue"
+        ]
+      },
+      "OnSuccess": {
+        "type": "string",
+        "description": "Reserved for future expansion; only `Continue` is meaningful today.",
+        "enum": [
+          "continue"
+        ]
+      },
+      "ReadyStatus": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "ReplayDeadLetterResponse": {
+        "type": "object",
+        "required": [
+          "job_id"
+        ],
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "description": "The fresh job created from the dead-lettered one."
+          }
+        }
+      },
+      "StatsSnapshot": {
+        "type": "object",
+        "description": "Plain snapshot of [`EngineStats`].",
+        "required": [
+          "jobs_created",
+          "jobs_completed",
+          "jobs_failed",
+          "jobs_retried",
+          "jobs_dead_lettered",
+          "workflows_created",
+          "workflows_completed",
+          "workflows_failed"
+        ],
+        "properties": {
+          "jobs_completed": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "jobs_created": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "jobs_dead_lettered": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "jobs_failed": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "jobs_retried": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "workflows_completed": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "workflows_created": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "workflows_failed": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "StepStatus": {
+        "type": "string",
+        "description": "Lifecycle state of a single workflow step.",
+        "enum": [
+          "pending",
+          "running",
+          "completed",
+          "failed",
+          "cancelled",
+          "skipped"
+        ]
+      },
+      "TasksResponse": {
+        "type": "object",
+        "required": [
+          "tasks"
+        ],
+        "properties": {
+          "tasks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Workflow": {
+        "type": "object",
+        "description": "A workflow instance and its steps.",
+        "required": [
+          "id",
+          "name",
+          "steps",
+          "status",
+          "created_at"
+        ],
+        "properties": {
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "context": {
+            "type": "object",
+            "description": "Accumulated step results, keyed by step name. Passed to downstream steps\nunder the `_context` payload key.",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "started_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WorkflowStatus"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStep"
+            }
+          },
+          "tenant_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "WorkflowDiagramResponse": {
+        "type": "object",
+        "required": [
+          "format",
+          "diagram"
+        ],
+        "properties": {
+          "diagram": {
+            "type": "string",
+            "description": "The diagram document (Mermaid `graph TD`)."
+          },
+          "format": {
+            "type": "string",
+            "description": "Diagram source format. Always `mermaid` today."
+          }
+        }
+      },
+      "WorkflowStatus": {
+        "type": "string",
+        "description": "Lifecycle state of a workflow instance.",
+        "enum": [
+          "created",
+          "running",
+          "completed",
+          "failed",
+          "partially_failed",
+          "cancelled"
+        ]
+      },
+      "WorkflowStep": {
+        "type": "object",
+        "description": "A node in a workflow DAG. Steps are addressed by their unique `name`;\n`depends_on` lists the names of steps that must complete first.",
+        "required": [
+          "name",
+          "task_name"
+        ],
+        "properties": {
+          "config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JobConfig"
+              }
+            ]
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "on_failure": {
+            "$ref": "#/components/schemas/OnFailure"
+          },
+          "on_success": {
+            "$ref": "#/components/schemas/OnSuccess"
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": {},
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "task_name": {
+            "type": "string"
+          }
+        }
+      },
+      "WorkflowStepState": {
+        "type": "object",
+        "description": "Runtime status of one workflow step (the live progress view).",
+        "required": [
+          "name",
+          "status"
+        ],
+        "properties": {
+          "job_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The job executing this step, once one has been scheduled."
+          },
+          "name": {
+            "type": "string",
+            "description": "The step's name (its address within the workflow)."
+          },
+          "status": {
+            "$ref": "#/components/schemas/StepStatus"
+          }
+        }
+      },
+      "WorkflowStepStatesResponse": {
+        "type": "object",
+        "required": [
+          "steps"
+        ],
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepState"
+            },
+            "description": "One entry per step, in declaration order."
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API Key"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "health",
+      "description": "Liveness and readiness probes"
+    },
+    {
+      "name": "jobs",
+      "description": "Job lifecycle"
+    },
+    {
+      "name": "workflows",
+      "description": "Workflow orchestration (DAG of steps)"
+    },
+    {
+      "name": "cron",
+      "description": "Recurring enqueues on a cron schedule (UTC)"
+    },
+    {
+      "name": "dlq",
+      "description": "Dead-letter queue: inspect terminally-failed jobs and replay them as fresh jobs"
+    },
+    {
+      "name": "worker",
+      "description": "Remote worker protocol: lease jobs, heartbeat, report completion/failure. Lets handlers run in any language, outside the server binary."
+    },
+    {
+      "name": "system",
+      "description": "Introspection and metrics"
+    }
+  ]
+}
