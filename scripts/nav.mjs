@@ -36,6 +36,7 @@ export const NAV = [
       { slug: "api", title: "REST API" },
       { slug: "deployment", title: "Production deployment" },
       { slug: "internals", title: "How it works" },
+      { slug: "benchmarks", title: "Benchmarks" },
       { slug: "examples", title: "Examples" },
     ],
   },
