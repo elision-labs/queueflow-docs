@@ -47,7 +47,7 @@ Requirements: Docker, Node 18 or newer, Python 3.10 or newer. The compose file r
 
 ## Express example
 
-[elision-labs/queueflow-example-nodejs](https://github.com/elision-labs/queueflow-example-nodejs).
+[elision-labs/queueflow-nodejs-example](https://github.com/elision-labs/queueflow-nodejs-example).
 
 A small Express service demonstrating the realistic backend pattern: HTTP handlers stay fast by **enqueuing** work and returning `202 Accepted` with a status URL, and a TypeScript worker in the same app executes the jobs over the remote worker protocol.
 
@@ -68,7 +68,7 @@ It shows:
 - mapping SDK errors (`NotFoundError`, `ApiError`, …) to HTTP status codes.
 
 ```bash
-git clone https://github.com/elision-labs/queueflow-example-nodejs && cd queueflow-example-nodejs
+git clone https://github.com/elision-labs/queueflow-nodejs-example && cd queueflow-nodejs-example
 make demo     # Postgres + engine (started with --dev) + npm install + end-to-end smoke test
 make app      # run the example API on :3000
 make down     # stop everything

@@ -205,4 +205,4 @@ The wire types come straight from the generated core and are re-exported: `Job`,
 
 ## A complete example
 
-[queueflow-example-nodejs](https://github.com/sjriddle/queueflow-example-nodejs) is an Express service that enqueues a welcome email on signup, runs the handler in a TypeScript worker, streams job status over SSE, builds a report workflow with `wf()`, and maps SDK errors to HTTP status codes. `make demo` brings up Postgres, the engine, and a smoke test. See [Examples](/examples).
+[queueflow-nodejs-example](https://github.com/elision-labs/queueflow-nodejs-example) is an Express service that enqueues a welcome email on signup, runs the handler in a TypeScript worker, streams job status over SSE, builds a report workflow with `wf()`, and maps SDK errors to HTTP status codes. `make demo` brings up Postgres, the engine, and a smoke test. See [Examples](/examples).
