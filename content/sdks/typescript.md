@@ -6,7 +6,7 @@ description: The @queueflow/sdk package for Node.js and TypeScript. A typed clie
 `@queueflow/sdk` is a hand-written facade over a core generated from the server's OpenAPI spec. The wire types and transport are regenerated and never drift; the facade adds the ergonomics codegen cannot express. It has zero runtime dependencies, uses the built-in `fetch`, and ships dual ESM and CommonJS builds with its own type declarations.
 
 - **Requires** Node.js 18 or newer.
-- **Source**: [elision-labs/queueflow-sdk-nodejs](https://github.com/elision-labs/queueflow-sdk-nodejs). **Package**: [npm](https://www.npmjs.com/package/@queueflow/sdk), version 0.2.0.
+- **Source**: [elision-labs/queueflow-sdk-nodejs](https://github.com/elision-labs/queueflow-sdk-nodejs). **Package**: [npm](https://www.npmjs.com/package/@queueflow/sdk), version 0.2.1.
 
 ## Install
 
