@@ -53,10 +53,10 @@ One binary, `queueflow`, runs the API, the in-process workers, or both (`--mode 
 | Server and CLI (`queueflow`) | [crates.io](https://crates.io/crates/queueflow), [GitHub releases](https://github.com/elision-labs/queueflow-core/releases), `ghcr.io/elision-labs/queueflow` | 0.2.0 |
 | Engine as a library (`queueflow-core`) | [crates.io](https://crates.io/crates/queueflow-core) | 0.2.0 |
 | Rust client and worker runtime (`queueflow-client`) | [crates.io](https://crates.io/crates/queueflow-client) | 0.2.0 |
-| TypeScript SDK (`@queueflow/sdk`) | [npm](https://www.npmjs.com/package/@queueflow/sdk) | 0.2.0 |
+| TypeScript SDK (`@queueflow/sdk`) | [npm](https://www.npmjs.com/package/@queueflow/sdk) | 0.2.1 |
 | Python SDK (`queueflow`) | [PyPI](https://pypi.org/project/queueflow/) | 0.2.2 |
 | Go SDK | [GitHub](https://github.com/elision-labs/queueflow-sdk-go) | 0.2.0 (`v0.2.0`) |
-| Rust generated SDK (`queueflow-sdk`) | [crates.io](https://crates.io/crates/queueflow-sdk) | 0.2.0 |
+| Rust generated SDK (`queueflow-sdk`) | [crates.io](https://crates.io/crates/queueflow-sdk) | 0.2.1 |
 
 QueueFlow is MIT licensed. Source for everything is under the [elision-labs](https://github.com/elision-labs) GitHub organization.
 
