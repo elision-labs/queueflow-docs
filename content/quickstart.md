@@ -16,7 +16,7 @@ docker run -d --name qf-pg -p 5432:5432 \
 
 ## 2. Start the engine
 
-Pick one. All three start the REST API on port 8000, Prometheus metrics on port 9090, ten in-process workers, and apply the schema migrations on startup.
+Pick one. All three start the REST API on port 8000, Prometheus metrics on port 9090, ten in-process workers, and apply the schema migrations on startup. All three pass `--dev`, which turns on [development mode](/concepts/auth#development-mode) so you can use any bearer token; see the warning below.
 
 **With the Docker image**
 
@@ -24,7 +24,7 @@ Pick one. All three start the REST API on port 8000, Prometheus metrics on port 
 docker run --rm -p 8000:8000 -p 9090:9090 \
   --add-host=host.docker.internal:host-gateway \
   -e DATABASE_URL=postgres://postgres:postgres@host.docker.internal:5432/postgres \
-  ghcr.io/elision-labs/queueflow:0.1 serve
+  ghcr.io/elision-labs/queueflow:0.2 serve --dev
 ```
 
 The `--add-host` flag is only needed on Linux; Docker Desktop on macOS and Windows resolves `host.docker.internal` on its own.
@@ -35,7 +35,7 @@ The `--add-host` flag is only needed on Linux; Docker Desktop on macOS and Windo
 cargo install queueflow
 
 export DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres
-queueflow serve --mode all --workers 10 --api-port 8000
+queueflow serve --dev --mode all --workers 10 --api-port 8000
 ```
 
 **With a prebuilt binary**
@@ -46,13 +46,15 @@ Confirm it is up:
 
 ```bash
 curl -s http://localhost:8000/health
-# {"status":"ok","timestamp":"…","version":"0.1.0"}
+# {"status":"ok","timestamp":"…","version":"0.2.0"}
 ```
 
 The interactive Swagger UI is at <http://localhost:8000/docs>.
 
-> **Note**
-> With no `--api-keys`, `--jwt-secret`, or `--worker-token` configured the server runs in **development mode**: any non-empty bearer token authenticates as one fixed tenant, and any authenticated caller may lease work. The server warns about this at startup. See [Authentication and tenants](/concepts/auth) before exposing it to a network.
+> **Warning**
+> `--dev` (or `QUEUEFLOW_DEV=1`) puts the server in **development mode**: any non-empty bearer token authenticates as the fixed tenant `tenant1`, and any authenticated caller may lease work from the worker routes. The server warns about this at startup. Never expose a `--dev` server to a network you do not control.
+>
+> Without `--dev`, `serve` in `api` or `all` mode refuses to start until tenant authentication (`--api-keys` and/or `--jwt-secret`) **and** `--worker-token` are configured. To run this quick start with real credentials instead, replace `--dev` with `--api-keys dev:tenant1 --worker-token <secret>` and give the worker in step 5 that secret as `workerToken`. See [Authentication and tenants](/concepts/auth).
 
 ## 3. Enqueue a job
 
@@ -162,7 +164,7 @@ The worker leases one job at a time, heartbeats at half the lease interval, and 
 ## 6. Look around
 
 ```bash
-curl -s http://localhost:8000/api/v1/stats  -H 'Authorization: Bearer dev'   # engine counters
+curl -s http://localhost:8000/api/v1/stats  -H 'Authorization: Bearer dev'   # job and workflow counters for your tenant
 curl -s http://localhost:8000/api/v1/tasks  -H 'Authorization: Bearer dev'   # registered in-process handlers
 curl -s http://localhost:8000/api/v1/dlq    -H 'Authorization: Bearer dev'   # dead letters (none yet)
 curl -s http://localhost:9090/metrics                                        # Prometheus
@@ -179,5 +181,5 @@ docker rm -f qf-pg
 ## Next steps
 
 - [Configuration](/configuration): every flag and environment variable.
-- [Authentication and tenants](/concepts/auth): turn off development mode.
+- [Authentication and tenants](/concepts/auth): drop `--dev` and configure real credentials.
 - [Production deployment](/deployment): split API and worker processes, probes, metrics, retention.

@@ -48,14 +48,14 @@ Rules that make this safe:
 
 | Endpoint | 200 when | 503 when |
 | --- | --- | --- |
-| `GET /health` | The process is up and can reach the database. Body: `{"status":"ok","timestamp":…,"version":"0.1.0"}`. | The database is unreachable. |
+| `GET /health` | The process is up and can reach the database. Body: `{"status":"ok","timestamp":…,"version":"0.2.0"}`. | The database is unreachable. |
 | `GET /ready` | The server is ready to take traffic. | Not ready. |
 
 Neither requires a token. Point liveness at `/health` and readiness at `/ready`.
 
 ```yaml
 # Kubernetes container snippet
-image: ghcr.io/elision-labs/queueflow:0.1
+image: ghcr.io/elision-labs/queueflow:0.2
 args: ["serve", "--mode", "api"]
 env:
   - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: queueflow, key: database-url } } }
@@ -83,7 +83,7 @@ Prometheus metrics are served on `--metrics-port` (default 9090) at `/metrics`, 
 | `queueflow_jobs_dead_lettered_total` | Jobs that gave up. |
 | `queueflow_workflows_created_total`, `queueflow_workflows_completed_total`, `queueflow_workflows_failed_total` | Workflow counterparts. |
 
-Counters are per process. For fleet-wide or historical numbers, query the database: `SELECT status, count(*) FROM queueflow.jobs GROUP BY 1` and friends. `GET /api/v1/stats` returns the same counters as JSON for the process that answers the request.
+Counters are per process. For fleet-wide or historical numbers, query the database: `SELECT status, count(*) FROM queueflow.jobs GROUP BY 1` and friends. `GET /api/v1/stats` is different in scope: it returns job and workflow counts for the calling tenant, so it is what an application shows its own users rather than an operator's view of the fleet.
 
 Useful alerts: dead letters increasing (`rate(queueflow_jobs_dead_lettered_total[5m]) > 0`), the oldest claimable job's age (from SQL: `min(scheduled_at) WHERE status IN ('pending','retrying') AND scheduled_at <= now()`), and `/health` returning 503.
 
@@ -105,13 +105,14 @@ Migrations are idempotent and run on startup by default, so a rolling restart on
 
 ## Security checklist
 
+- [ ] `--dev` not passed and `QUEUEFLOW_DEV` not set anywhere in the deployment. Without `--dev`, `api` and `all` mode refuse to start until the next two items are done.
 - [ ] `--api-keys` and/or `--jwt-secret` set, so tenant auth is real.
 - [ ] `--worker-token` set, and given only to worker processes.
 - [ ] `--cors-origins` set if browsers call the API, otherwise irrelevant.
 - [ ] TLS terminated in front of the API; the server speaks plain HTTP.
 - [ ] Port 9090 (metrics) reachable only by your scraper.
 - [ ] `DATABASE_URL` in a secret store, not in the image.
-- [ ] Startup logs free of development-mode warnings.
+- [ ] Startup logs free of development-mode warnings (they only appear with `--dev`).
 
 ## Example: Docker Compose with a split topology
 
@@ -124,7 +125,7 @@ services:
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U queueflow"], interval: 2s, timeout: 2s, retries: 30 }
 
   api:
-    image: ghcr.io/elision-labs/queueflow:0.1
+    image: ghcr.io/elision-labs/queueflow:0.2
     command: serve --mode api --api-keys ${QUEUEFLOW_API_KEYS} --worker-token ${QUEUEFLOW_WORKER_TOKEN} --cors-origins https://app.example.com
     environment: { DATABASE_URL: postgres://queueflow:queueflow@postgres:5432/queueflow, RUST_LOG: info }
     ports: [ "8000:8000" ]
@@ -132,7 +133,8 @@ services:
     deploy: { replicas: 2 }
 
   worker:
-    image: ghcr.io/elision-labs/queueflow:0.1
+    image: ghcr.io/elision-labs/queueflow:0.2
+    # worker mode has no HTTP API, so it needs no credentials and no --dev.
     command: serve --mode worker --workers 20 --retention-hours 168
     environment: { DATABASE_URL: postgres://queueflow:queueflow@postgres:5432/queueflow, RUST_LOG: info }
     depends_on: { postgres: { condition: service_healthy } }

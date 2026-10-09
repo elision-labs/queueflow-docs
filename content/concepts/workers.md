@@ -72,7 +72,7 @@ Both return `204` on success, `404` for an unknown job, and `409` when the lease
 
 Worker-protocol routes are the only routes that cross tenant boundaries: a worker leases whatever is on the queue and sees every tenant's payloads. They therefore take a separate credential, the **worker token**, configured on the server with `--worker-token`. A tenant token on these routes is a `403`.
 
-With no `--worker-token` configured the server is in development mode and accepts any authenticated caller as a worker, warning at startup. Never run that way on a network you do not control. See [Authentication and tenants](/concepts/auth).
+A server started with `--dev` (or `QUEUEFLOW_DEV=1`) is in development mode and accepts any authenticated caller as a worker, warning at startup. Without `--dev`, `serve` in `api` or `all` mode refuses to start until `--worker-token` and a tenant credential are configured. Never run a `--dev` server on a network you do not control. See [Authentication and tenants](/concepts/auth).
 
 ## Queues
 

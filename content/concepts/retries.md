@@ -17,7 +17,7 @@ A job's first attempt plus `max_retries` further attempts make up its budget. An
 
 A `failed` job is also dead-lettered when no handler exists for its task (`handler_not_found`).
 
-In the TypeScript SDK, throwing `NonRetryableError` from a handler reports `retryable: false`. In the Rust worker runtime the handler's error type decides. Over the raw protocol, send `{"lease_token": "…", "error": "…", "retryable": false}` to `POST /api/v1/jobs/{id}/fail`.
+In the TypeScript and Python SDKs, raising `NonRetryableError` from a handler reports `retryable: false`. In the Rust worker runtime the handler's error type decides. Over the raw protocol, send `{"lease_token": "…", "error": "…", "retryable": false}` to `POST /api/v1/jobs/{id}/fail`.
 
 ## Backoff
 
@@ -29,9 +29,9 @@ The delay before attempt `n` (zero-based retry index) is computed from the job's
 | `linear` | `retry_delay_secs × (n + 1)` |
 | `exponential` | `retry_delay_secs × 2^n` |
 
-The result is capped at `retry_max_delay_secs`, then jittered by `jitter_factor`: with `0.1`, the final delay is drawn uniformly from 90 to 110 percent of the computed value, which spreads out thundering-herd retries.
+The result is capped at `retry_max_delay_secs` (default 3600, so the cap applies to every strategy), then jittered by `jitter_factor`: with `0.1`, the final delay is drawn uniformly from 90 to 110 percent of the capped value, which spreads out thundering-herd retries. The jittered value is rounded to whole seconds.
 
-With the defaults (60 second base, exponential, one hour cap, 10 percent jitter), the three retries wait about 1, 2, and 4 minutes. A job with `retry_delay_secs: 2`, `max_retries: 4`, and `jitter_factor: 0.2` retries after roughly 2, 4, 8, and 16 seconds, as the Ship-It demo's payment step does.
+With the defaults (60 second base, exponential, one hour cap, 10 percent jitter), the three retries wait about 1, 2, and 4 minutes: 54 to 66 seconds, 108 to 132 seconds, and 216 to 264 seconds. The Ship-It demo's payment step uses `retry_delay_secs: 2`, `max_retries: 4`, `retry_max_delay_secs: 15`, and `jitter_factor: 0.2`, so its four retries are computed as 2, 4, 8, and 16 seconds, the last is capped to 15, and each is then jittered by up to 20 percent either way: roughly 2, 4, 8, and 15 seconds, never more than 18.
 
 ```json
 {
@@ -41,7 +41,7 @@ With the defaults (60 second base, exponential, one hour cap, 10 percent jitter)
     "max_retries": 4,
     "retry_backoff": "exponential",
     "retry_delay_secs": 2,
-    "retry_max_delay_secs": 60,
+    "retry_max_delay_secs": 15,
     "jitter_factor": 0.2
   }
 }
@@ -92,7 +92,7 @@ From the CLI: `queueflow dlq list`, `queueflow dlq get <id>`, `queueflow dlq rep
 
 ## Observing failures
 
-- `GET /api/v1/stats` returns process-local counters including `jobs_retried`, `jobs_failed`, and `jobs_dead_lettered`.
+- `GET /api/v1/stats` returns counters for the caller's tenant, including `jobs_retried`, `jobs_failed`, and `jobs_dead_lettered`.
 - The Prometheus endpoint exposes `queueflow_jobs_retried_total`, `queueflow_jobs_failed_total`, and `queueflow_jobs_dead_lettered_total`.
 - `GET /api/v1/jobs?status=retrying` shows what is waiting on backoff; `GET /api/v1/dlq` shows what has given up.
 

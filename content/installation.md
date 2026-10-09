@@ -13,7 +13,7 @@ The server, the in-process workers, the migrations, and the CLI client all ship 
 
 ## Prebuilt binaries
 
-Every [GitHub release](https://github.com/elision-labs/queueflow-core/releases) attaches a tarball per platform plus the OpenAPI document. For v0.1.0:
+Every [GitHub release](https://github.com/elision-labs/queueflow-core/releases) attaches a tarball per platform plus the OpenAPI document. For v0.2.0:
 
 | Asset | Platform |
 | --- | --- |
@@ -23,7 +23,7 @@ Every [GitHub release](https://github.com/elision-labs/queueflow-core/releases) 
 
 ```bash
 curl -fsSL -o queueflow.tar.gz \
-  https://github.com/elision-labs/queueflow-core/releases/download/v0.1.0/queueflow-x86_64-unknown-linux-gnu.tar.gz
+  https://github.com/elision-labs/queueflow-core/releases/download/v0.2.0/queueflow-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf queueflow.tar.gz
 sudo install -m 0755 queueflow /usr/local/bin/queueflow
 queueflow --version
@@ -42,14 +42,14 @@ This builds the `queueflow` crate from crates.io with the PostgreSQL adapter ena
 The image is published to GitHub Container Registry. Its entrypoint is the `queueflow` binary, so the container command is just the subcommand and flags:
 
 ```bash
-docker pull ghcr.io/elision-labs/queueflow:0.1
+docker pull ghcr.io/elision-labs/queueflow:0.2
 
 docker run --rm -p 8000:8000 -p 9090:9090 \
   -e DATABASE_URL=postgres://user:pass@db.example.internal:5432/queueflow \
-  ghcr.io/elision-labs/queueflow:0.1 serve --mode all --workers 10
+  ghcr.io/elision-labs/queueflow:0.2 serve --dev --mode all --workers 10
 ```
 
-Pin the minor tag (`0.1`) in production. A minimal Docker Compose file that brings up Postgres and the engine together:
+`--dev` enables [development mode](/concepts/auth#development-mode); without it `serve` needs `--api-keys` and/or `--jwt-secret` plus `--worker-token`, as in the Compose file below. Pin the minor tag (`0.2`) in production. A minimal Docker Compose file that brings up Postgres and the engine together:
 
 ```yaml
 services:
@@ -66,7 +66,7 @@ services:
       retries: 30
 
   queueflow:
-    image: ghcr.io/elision-labs/queueflow:0.1
+    image: ghcr.io/elision-labs/queueflow:0.2
     command: >
       serve
       --mode all
@@ -99,8 +99,10 @@ cargo build --release -p queueflow
 
 ```bash
 export DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres
-queueflow serve --mode all --workers 10 --api-port 8000
+queueflow serve --dev --mode all --workers 10 --api-port 8000
 ```
+
+`--dev` is for a laptop. In production pass `--api-keys` and/or `--jwt-secret` together with `--worker-token` instead; `serve` in `api` or `all` mode refuses to start with neither. See [Authentication and tenants](/concepts/auth).
 
 On startup the server:
 

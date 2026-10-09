@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "sync-spec": "cp ../queueflow-core-rs/spec/openapi.json spec/openapi.json",
+    "sync-spec": "test -f ../queueflow-core-rs/spec/openapi.json || { echo 'sync-spec: ../queueflow-core-rs/spec/openapi.json not found. Check out queueflow-core as a sibling directory named queueflow-core-rs and run `cargo run -p queueflow -- spec` there first.' >&2; exit 1; }; cp ../queueflow-core-rs/spec/openapi.json spec/openapi.json && echo 'sync-spec: copied spec/openapi.json'",
     "dev": "node scripts/build.mjs && npx -y serve dist"
   },
   "devDependencies": {

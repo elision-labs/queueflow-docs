@@ -15,9 +15,10 @@ Every option of `queueflow serve` is available as a command-line flag and as an 
 | `--metrics-port` | `QUEUEFLOW_METRICS_PORT` | `9090` | Port for the Prometheus `/metrics` endpoint. |
 | `--workers` | `QUEUEFLOW_WORKERS` | `10` | Number of concurrent in-process workers on the default queue. |
 | `--default-queue` | `QUEUEFLOW_DEFAULT_QUEUE` | `default` | Queue used when a job, cron schedule, or workflow step does not name one. Workflow steps always run here. |
-| `--worker-token` | `QUEUEFLOW_WORKER_TOKEN` | unset | Credential required by the worker-protocol endpoints (lease, heartbeat, complete, fail). Unset means development mode: any authenticated caller may lease work, with a startup warning. |
+| `--dev` | `QUEUEFLOW_DEV` | off | Development mode. Any non-empty bearer token authenticates as the fixed tenant `tenant1`, and the worker-protocol endpoints accept any authenticated caller. Lets `serve` start without the three credentials below, with loud startup warnings. Never set it in production. |
+| `--worker-token` | `QUEUEFLOW_WORKER_TOKEN` | unset | Credential required by the worker-protocol endpoints (lease, heartbeat, complete, fail). Required in `api` and `all` mode unless `--dev` is set. |
 | `--jwt-secret` | `QUEUEFLOW_JWT_SECRET` | unset | HS256 secret for tenant JWTs on `/api/v1`. The `sub` claim is the tenant id; `exp` is enforced. May be combined with `--api-keys`. |
-| `--api-keys` | `QUEUEFLOW_API_KEYS` | unset | Static tenant API keys as comma-separated `token:tenant` pairs, for example `k1:acme,k2:globex`. With neither this nor `--jwt-secret`, any non-empty token maps to one fixed tenant. |
+| `--api-keys` | `QUEUEFLOW_API_KEYS` | unset | Static tenant API keys as comma-separated `token:tenant` pairs, for example `k1:acme,k2:globex`. In `api` and `all` mode at least one of this and `--jwt-secret` is required unless `--dev` is set. |
 | `--cors-origins` | `QUEUEFLOW_CORS_ORIGINS` | unset | Comma-separated list of origins allowed by CORS. Unset means permissive CORS (development mode). |
 | `--max-db-connections` | `QUEUEFLOW_MAX_DB_CONNECTIONS` | `50` | Upper bound on the connection pool. |
 | `--auto-migrate` | `QUEUEFLOW_AUTO_MIGRATE` | `true` | Apply embedded migrations on startup. Set the environment variable to `false` to manage migrations with `queueflow migrate` instead. |
@@ -35,7 +36,7 @@ Any number of processes in any mode can share one database. Claims are serialize
 
 ## Authentication
 
-Three independent credentials exist. Configure all of them in production.
+Three independent credentials exist. In `api` and `all` mode the server refuses to start unless a tenant credential (`--api-keys` and/or `--jwt-secret`) and `--worker-token` are both configured, or `--dev` is passed. Configure all three in production.
 
 | Credential | Flag | Who uses it |
 | --- | --- | --- |
@@ -43,7 +44,7 @@ Three independent credentials exist. Configure all of them in production.
 | Tenant JWT | `--jwt-secret` | Same routes, but with HS256-signed tokens whose `sub` is the tenant id. Lets you mint short-lived tenant tokens without restarting the server. |
 | Worker token | `--worker-token` | Processes that lease and report work. Workers see every tenant's payloads, so this must never be a tenant token. |
 
-With none of them set the server runs in development mode and says so at startup. See [Authentication and tenants](/concepts/auth) for details and examples.
+`--dev` (or `QUEUEFLOW_DEV=1`) replaces them with development placeholders: any non-empty token is the tenant `tenant1`, and any authenticated caller may lease work. The server says so at startup. See [Authentication and tenants](/concepts/auth) for details and examples.
 
 ## CORS
 

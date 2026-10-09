@@ -7,10 +7,10 @@ Rust has the deepest integration because the engine is written in it. Choose by 
 
 | Crate | Use it when | Version |
 | --- | --- | --- |
-| [`queueflow-client`](https://crates.io/crates/queueflow-client) | You talk to a running QueueFlow server from Rust, or you write a **remote worker** in Rust. First-party, reuses the engine's domain types, ships a worker runtime with automatic heartbeating. | 0.1.0 |
-| [`queueflow-sdk`](https://crates.io/crates/queueflow-sdk) | You want the same openapi-generator shape as the other SDKs (for example to share patterns across a polyglot team). Generated client plus a small facade. | 0.1.0 |
-| [`queueflow-core`](https://crates.io/crates/queueflow-core) | You **embed the engine** in your own binary: in-process handlers, in-memory testing, custom storage adapters. | 0.1.0 |
-| [`queueflow-api`](https://crates.io/crates/queueflow-api) | You embed the HTTP layer (the axum router and OpenAPI document) alongside an embedded engine. | 0.1.0 |
+| [`queueflow-client`](https://crates.io/crates/queueflow-client) | You talk to a running QueueFlow server from Rust, or you write a **remote worker** in Rust. First-party, reuses the engine's domain types, ships a worker runtime with automatic heartbeating. | 0.2.0 |
+| [`queueflow-sdk`](https://crates.io/crates/queueflow-sdk) | You want the same openapi-generator shape as the other SDKs (for example to share patterns across a polyglot team). Generated client plus a small facade. | 0.2.0 |
+| [`queueflow-core`](https://crates.io/crates/queueflow-core) | You **embed the engine** in your own binary: in-process handlers, in-memory testing, custom storage adapters. | 0.2.0 |
+| [`queueflow-api`](https://crates.io/crates/queueflow-api) | You embed the HTTP layer (the axum router and OpenAPI document) alongside an embedded engine. | 0.2.0 |
 
 All of them require Rust 1.96 or newer and live in the [queueflow-core](https://github.com/elision-labs/queueflow-core) workspace, except `queueflow-sdk`, which is in [queueflow-sdk-rust](https://github.com/elision-labs/queueflow-sdk-rust).
 
@@ -123,7 +123,7 @@ This is also how you test code that uses QueueFlow: no Docker, no Postgres, and 
 
 ```toml
 [dependencies]
-queueflow-core = { version = "0.1", features = ["postgres"] }
+queueflow-core = { version = "0.2", features = ["postgres"] }
 ```
 
 ```rust

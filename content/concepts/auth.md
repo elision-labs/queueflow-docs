@@ -1,6 +1,6 @@
 ---
 title: Authentication and tenants
-description: Tenant API keys, HS256 JWTs, the separate worker credential, what development mode means, and how tenant isolation works.
+description: Tenant API keys, HS256 JWTs, the separate worker credential, the --dev flag and what development mode means, and how tenant isolation works.
 ---
 
 Every `/api/v1` route requires `Authorization: Bearer <token>`. Which token depends on what the caller is: an **application** acting for one tenant, or a **worker** that executes work for every tenant. The probe endpoints `/health` and `/ready`, the Swagger UI at `/docs`, and `/openapi.json` need no token.
@@ -44,11 +44,21 @@ queueflow serve --worker-token "$(openssl rand -hex 32)"
 
 Workers send this value as their bearer token. A tenant token on a worker route is a `403` ("authenticated, but not with the worker credential"), and the worker token on a tenant route is unauthorized. Keep the two kinds of secret in different places.
 
+## Fail-closed startup
+
+`queueflow serve` in `api` or `all` mode refuses to start unless tenant authentication (`--api-keys` and/or `--jwt-secret`) **and** `--worker-token` are configured, or `--dev` is passed. A missing credential is a startup error, not a server that silently accepts everything. `--mode worker` has no HTTP listener other than metrics and is not subject to the check.
+
 ## Development mode
 
-With **neither** `--api-keys` nor `--jwt-secret` set, any non-empty bearer token authenticates as the fixed tenant `tenant1`. With **no** `--worker-token`, any authenticated caller may lease and report work. The server warns loudly about each at startup. This is convenient on a laptop (`-H 'Authorization: Bearer dev'`) and dangerous anywhere else.
+`queueflow serve --dev` (or the environment variable `QUEUEFLOW_DEV=1`) replaces the credential checks with development placeholders:
 
-The checks are independent: you can configure real tenant auth and still leave the worker routes open, or the reverse. Configure all three flags in production. See the [deployment checklist](/deployment#security-checklist).
+- Any non-empty bearer token authenticates as the fixed tenant `tenant1`, so `-H 'Authorization: Bearer dev'` works everywhere.
+- The worker routes accept any authenticated caller; a worker can lease and report with the same `dev` token.
+- The server warns loudly about both at startup.
+
+This is convenient on a laptop and dangerous anywhere else. `--dev` is for the [quick start](/quickstart), local development, and test suites. Never set it in production, and never expose a `--dev` server to a network you do not control. The flag is not a partial hardening step: to leave development mode, drop it and configure all three credentials. See the [deployment checklist](/deployment#security-checklist).
+
+The SDKs reflect the same split. Each has a way to pass a separate worker credential (`workerToken` in TypeScript, `worker_token=` in Python, a second configuration in Go and Rust); when it is omitted, the tenant token is reused on worker routes, which only works against a `--dev` server.
 
 ## Putting it together
 
@@ -84,7 +94,8 @@ The server speaks plain HTTP. Terminate TLS in front of it (a load balancer, an 
 | Cron schedules | yes; names are unique per tenant |
 | Dead letters: list, get, replay | yes |
 | Idempotency keys | yes; the same key in two tenants is two jobs |
-| `GET /api/v1/stats`, `GET /api/v1/tasks` | no; process-wide introspection |
+| `GET /api/v1/stats` | yes; job and workflow counts for the caller's tenant |
+| `GET /api/v1/tasks` | no; handlers are registered per deployment, not per tenant |
 | Worker routes | no; workers see every tenant's jobs on the queue |
 
 Rate limiting and per-tenant quotas are on the roadmap.

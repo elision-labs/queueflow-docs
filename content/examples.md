@@ -21,7 +21,7 @@ What each scenario demonstrates:
 | Order | Scenario |
 | --- | --- |
 | Anvil | The happy path, with ambient payment chaos (`PAYMENT_FAILURE_RATE`, default 0.25). |
-| Bubble wrap | A deterministic retry storm: payment fails three times, backs off exponentially with jitter, then clears. The step's partial config (`max_retries: 4, retry_delay_secs: 2, jitter: 0.2`) is filled in by the engine's defaults. |
+| Bubble wrap | A deterministic retry storm: payment fails three times, backs off exponentially with jitter, then clears. The step's partial config (`max_retries: 4, retry_delay_secs: 2, retry_max_delay_secs: 15, jitter_factor: 0.2`) is filled in by the engine's defaults. |
 | Suspicious briefcase | A fraud halt: a `NonRetryableError` dead-letters the job, the step's `halt` policy fails the workflow and cancels everything downstream. Replay it from the dispatch office. |
 | "This mailbox bounces" | The `skip` policy: the confirmation email fails twice and dead-letters, but the order still ships and the workflow ends `partially_failed`. |
 
@@ -41,13 +41,13 @@ Requirements: Docker, Node 18 or newer, Python 3.10 or newer. The compose file r
 | --- | --- |
 | The DAG, per-step configs, and failure policies | `src/pipeline.ts` |
 | Node worker (leases `orders`, heartbeats via `qf.worker.run`) | `src/worker.ts` |
-| Python worker (leases `warehouse` with the generated SDK) | `worker-py/worker.py` |
+| Python worker (leases `warehouse` with the Python facade's `run_worker`) | `worker-py/worker.py` |
 | Storefront and API (Express, SSE to the browser) | `src/server.ts` |
 | Smoke test proving all four scenarios | `scripts/smoke.ts` |
 
 ## Express example
 
-[sjriddle/queueflow-example-nodejs](https://github.com/sjriddle/queueflow-example-nodejs).
+[elision-labs/queueflow-example-nodejs](https://github.com/elision-labs/queueflow-example-nodejs).
 
 A small Express service demonstrating the realistic backend pattern: HTTP handlers stay fast by **enqueuing** work and returning `202 Accepted` with a status URL, and a TypeScript worker in the same app executes the jobs over the remote worker protocol.
 
@@ -68,13 +68,13 @@ It shows:
 - mapping SDK errors (`NotFoundError`, `ApiError`, …) to HTTP status codes.
 
 ```bash
-git clone https://github.com/sjriddle/queueflow-example-nodejs && cd queueflow-example-nodejs
-make demo     # Postgres + engine + SDK build + end-to-end smoke test
+git clone https://github.com/elision-labs/queueflow-example-nodejs && cd queueflow-example-nodejs
+make demo     # Postgres + engine (started with --dev) + npm install + end-to-end smoke test
 make app      # run the example API on :3000
 make down     # stop everything
 ```
 
-Requirements: Docker, Rust, and Node. The example builds the engine from a sibling checkout of `queueflow-core`.
+Requirements: Docker, Rust, and Node. The example builds the engine from a sibling checkout of `queueflow-core` and depends on the published `@queueflow/sdk` package.
 
 ## Smaller snippets
 

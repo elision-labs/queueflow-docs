@@ -6,7 +6,7 @@ description: The @queueflow/sdk package for Node.js and TypeScript. A typed clie
 `@queueflow/sdk` is a hand-written facade over a core generated from the server's OpenAPI spec. The wire types and transport are regenerated and never drift; the facade adds the ergonomics codegen cannot express. It has zero runtime dependencies, uses the built-in `fetch`, and ships dual ESM and CommonJS builds with its own type declarations.
 
 - **Requires** Node.js 18 or newer.
-- **Source**: [elision-labs/queueflow-sdk-nodejs](https://github.com/elision-labs/queueflow-sdk-nodejs). **Package**: [npm](https://www.npmjs.com/package/@queueflow/sdk), version 0.1.0.
+- **Source**: [elision-labs/queueflow-sdk-nodejs](https://github.com/elision-labs/queueflow-sdk-nodejs). **Package**: [npm](https://www.npmjs.com/package/@queueflow/sdk), version 0.2.0.
 
 ## Install
 
@@ -46,7 +46,7 @@ console.log(finished.status, finished.context);
 const qf = new QueueFlow({
   baseUrl,       // required
   token,         // required; tenant API key or JWT
-  workerToken,   // credential for qf.worker routes (defaults to token, which only works in development mode)
+  workerToken,   // credential for qf.worker routes (defaults to token, which only works against a --dev server)
   timeoutMs,     // per-request timeout, default 30_000
   maxRetries,    // retries for idempotent calls on network errors and 502/503/504, default 2
   fetch,         // inject a custom fetch (tests, proxies)
@@ -170,7 +170,7 @@ Delivery is at-least-once: make handlers idempotent.
 ## System: `qf.system`
 
 ```ts
-await qf.system.stats();   // process-local engine counters
+await qf.system.stats();   // job and workflow counters for this tenant
 await qf.system.tasks();   // names of handlers registered in the server
 ```
 

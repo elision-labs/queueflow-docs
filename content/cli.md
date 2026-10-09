@@ -74,7 +74,7 @@ Output is JSON, so the CLI composes with `jq`.
 | Command | Description |
 | --- | --- |
 | `queueflow tasks` | List the task handlers registered in the server. |
-| `queueflow stats` | Show the server's process-local engine counters. |
+| `queueflow stats` | Show job and workflow counters for the token's tenant. |
 
 ## Examples
 
@@ -116,5 +116,5 @@ queueflow spec --output-dir ./spec
 
 ```bash
 docker run --rm -e QUEUEFLOW_SERVER_URL=http://host.docker.internal:8000 -e QUEUEFLOW_TOKEN=dev \
-  ghcr.io/elision-labs/queueflow:0.1 job list --limit 5
+  ghcr.io/elision-labs/queueflow:0.2 job list --limit 5
 ```

@@ -6,7 +6,7 @@ description: A Go client generated from the OpenAPI spec, with a small facade fo
 The Go SDK is generated from the server's OpenAPI spec with openapi-generator, with a hand-written facade (`facade.go`) injected at generation time so it is regenerated alongside the core and cannot drift. The facade is the recommended entry point; the generated `APIClient` and its `*APIService` groups remain available for everything else.
 
 - **Requires** Go 1.18 or newer.
-- **Source**: [elision-labs/queueflow-sdk-go](https://github.com/elision-labs/queueflow-sdk-go), version 0.1.0.
+- **Source**: [elision-labs/queueflow-sdk-go](https://github.com/elision-labs/queueflow-sdk-go), version 0.2.0 (tag `v0.2.0`).
 
 ## Install
 
