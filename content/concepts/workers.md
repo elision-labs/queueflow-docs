@@ -78,6 +78,18 @@ A server started with `--dev` (or `QUEUEFLOW_DEV=1`) is in development mode and 
 
 A worker leases from one queue by name. Queues are created implicitly: enqueue a job with `"config": {"queue": "images"}` and `images` exists. Use queues to route work to the processes that can do it (a Python queue for machine-learning jobs, a Node queue for email), to isolate noisy neighbours, and to scale independently. Workflow steps always run on the server's default queue, so put a worker there if your steps are not in-process handlers.
 
+Since 0.5.0 the engine also records every (tenant, queue) pair it enqueues to, so `GET /api/v1/queues` lists a queue even while it is empty, together with its `paused` flag.
+
+### Pausing and draining
+
+`POST /api/v1/queues/{queue}/pause` stops workers from claiming **your tenant's** jobs on that queue: pending jobs stay pending, running jobs finish normally, and nothing is lost. Other tenants' jobs on the same queue are unaffected. `POST /api/v1/queues/{queue}/resume` lifts the pause and wakes parked workers at once. Both are idempotent and answer with the queue's live counts:
+
+```json
+{"queue": "images", "paused": true, "running": 2, "pending": 40}
+```
+
+To drain a queue before a deploy or a schema change, pause it and poll `GET /api/v1/queues` (or the pause response) until `running` is `0`; resume when you are done. Pausing does not touch scheduled jobs' `run_at` or retries' backoff: a job that came due while paused is claimed as soon as the queue resumes. The in-process workers and the remote worker protocol honour the pause identically, because it is enforced in the claim query itself.
+
 ## Writing a worker from scratch
 
 The loop every SDK runtime implements, in shell for clarity:

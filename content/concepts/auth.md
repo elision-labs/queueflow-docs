@@ -48,6 +48,8 @@ viewer = jwt.encode({"sub": "acme", "exp": int(time.time()) + 3600, "scope": "re
 
 Only HS256 is supported today; asymmetric keys and JWKS are on the roadmap.
 
+To see how the server resolved a credential, call `GET /api/v1/whoami` (since 0.5.0): it returns `{"tenant": "acme", "access": "read_write"}` or `"read_only"`. The dashboard uses it to decide whether to show its action buttons.
+
 ## The worker credential
 
 Worker-protocol routes (`/api/v1/queues/{queue}/lease`, and `/heartbeat`, `/complete`, `/fail` under `/api/v1/jobs/{id}`) execute arbitrary tenants' jobs and see their payloads. They require a separate credential:

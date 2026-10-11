@@ -15,6 +15,7 @@ Every option of `queueflow serve` is available as a command-line flag and as an 
 | `--metrics-port` | `QUEUEFLOW_METRICS_PORT` | `9090` | Port for the Prometheus `/metrics` endpoint. |
 | `--workers` | `QUEUEFLOW_WORKERS` | `10` | Number of concurrent in-process workers per queue. |
 | `--queues` | `QUEUEFLOW_QUEUES` | the default queue | Comma-separated queues the in-process workers drain; each gets `--workers` workers. Since 0.3.0. Earlier versions drain only `--default-queue`. |
+| `--claim-batch` | `QUEUEFLOW_CLAIM_BATCH` | `0` (meaning `--workers`) | Most jobs one claim query takes for the in-process pool. The pool's dispatcher claims for every idle worker in one query, up to this many; lower it to spread a backlog more evenly across several servers at the cost of more claim queries. Since 0.5.0. |
 | `--default-queue` | `QUEUEFLOW_DEFAULT_QUEUE` | `default` | Queue used when a job, cron schedule, or workflow step does not name one. Workflow steps always run here. |
 | `--dev` | `QUEUEFLOW_DEV` | off | Development mode. Any non-empty bearer token authenticates as the fixed tenant `tenant1`, and the worker-protocol endpoints accept any authenticated caller. Lets `serve` start without the three credentials below, with loud startup warnings. Never set it in production. |
 | `--worker-token` | `QUEUEFLOW_WORKER_TOKEN` | unset | Credential required by the worker-protocol endpoints (lease, heartbeat, complete, fail). Required in `api` and `all` mode unless `--dev` is set. |

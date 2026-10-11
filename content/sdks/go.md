@@ -6,12 +6,12 @@ description: The queueflow-sdk-go module. A Go client generated from the OpenAPI
 The Go SDK is generated from the server's OpenAPI spec with openapi-generator, with a hand-written facade (`facade.go`) injected at generation time so it is regenerated alongside the core and cannot drift. The facade is the recommended entry point: one method per endpoint on `QueueFlow`, `WaitForJob` and `WaitForWorkflow` pollers, a workflow builder with local DAG validation, `*APIError` for every non-2xx response, and `Run`, a worker runtime that leases jobs, runs your handlers concurrently, heartbeats them, and reports outcomes. The generated `APIClient` and its `*APIService` groups remain available for everything else.
 
 - **Requires** Go 1.18 or newer. Module path `github.com/elision-labs/queueflow-sdk-go`, package `queueflow`.
-- **Source**: [elision-labs/queueflow-sdk-go](https://github.com/elision-labs/queueflow-sdk-go), version 0.3.0 (tag `v0.3.0`).
+- **Source**: [elision-labs/queueflow-sdk-go](https://github.com/elision-labs/queueflow-sdk-go), version 0.4.0 (tag `v0.4.0`).
 
 ## Install
 
 ```bash
-go get github.com/elision-labs/queueflow-sdk-go@v0.3.0
+go get github.com/elision-labs/queueflow-sdk-go@v0.4.0
 ```
 
 ```go

@@ -37,8 +37,9 @@ Output is JSON, so the CLI composes with `jq`.
 | --- | --- |
 | `queueflow job create --task <name> [--payload '{…}'] [--queue q] [--max-retries n] [--timeout-secs n] [--idempotency-key k] [--run-at 2026-06-09T15:00:00Z] [--wait]` | Enqueue a job and print its id. `--wait` blocks until the job is terminal and prints the full record. With `--idempotency-key`, re-running the command returns the same job. |
 | `queueflow job get <id>` | Fetch one job. |
-| `queueflow job list [--status s] [--queue q] [--limit n] [--offset n] [--include-total]` | List jobs. |
+| `queueflow job list [--status s] [--queue q] [--task t] [--limit n] [--offset n] [--include-total]` | List jobs. |
 | `queueflow job cancel <id>` | Cancel a job. |
+| `queueflow job cancel-many [--queue q] [--task t] [--status pending\|retrying\|running] [--created-before <rfc3339>] [--limit 100]` | Cancel every matching non-terminal job, oldest first, up to the limit; prints the count. Since 0.5.0. |
 | `queueflow job watch <id> [--timeout-secs 600]` | Wait for a job to finish and print it. |
 
 ### Workflows
@@ -58,6 +59,7 @@ Output is JSON, so the CLI composes with `jq`.
 | `queueflow dlq list [--queue q] [--limit n] [--offset n] [--include-total]` | List dead letters, newest first. |
 | `queueflow dlq get <id>` | Fetch one dead letter (integer id). |
 | `queueflow dlq replay <id>` | Replay a dead letter as a fresh job and print the new job id. |
+| `queueflow dlq replay-many [--queue q] [--task t] [--limit 100]` | Replay every unreplayed matching dead letter, oldest first; prints one outcome per entry. Since 0.5.0. |
 
 ### Cron
 
@@ -73,8 +75,11 @@ Output is JSON, so the CLI composes with `jq`.
 
 | Command | Description |
 | --- | --- |
+| `queueflow queue list` | List the tenant's queues with their backlog and `paused` flag. Since 0.5.0. |
+| `queueflow queue pause <name>` · `queueflow queue resume <name>` | Stop or resume claims of the tenant's jobs on a queue; prints the live counts (drained once `running` is 0). Since 0.5.0. |
 | `queueflow tasks` | List the task handlers registered in the server. |
 | `queueflow stats` | Show job and workflow counters for the token's tenant. |
+| `queueflow whoami` | Show the tenant and access level of the token. Since 0.5.0. |
 
 ## Examples
 
@@ -116,5 +121,5 @@ queueflow spec --output-dir ./spec
 
 ```bash
 docker run --rm -e QUEUEFLOW_SERVER_URL=http://host.docker.internal:8000 -e QUEUEFLOW_TOKEN=dev \
-  ghcr.io/elision-labs/queueflow:0.4 job list --limit 5
+  ghcr.io/elision-labs/queueflow:0.5 job list --limit 5
 ```

@@ -6,12 +6,12 @@ description: The queueflow package on PyPI. A generated client for every endpoin
 The `queueflow` package is generated from the server's OpenAPI spec with openapi-generator, with a hand-written facade injected at generation time so it is regenerated alongside the core and cannot drift. The facade is the recommended entry point; the generated `queueflow.api.*` clients and `queueflow.models.*` types remain available for everything else.
 
 - **Requires** Python 3.9 or newer. Depends on `urllib3`, `pydantic` 2, `python-dateutil`, and `typing-extensions`.
-- **Source**: [elision-labs/queueflow-sdk-python](https://github.com/elision-labs/queueflow-sdk-python). **Package**: [PyPI](https://pypi.org/project/queueflow/), version 0.3.0.
+- **Source**: [elision-labs/queueflow-sdk-python](https://github.com/elision-labs/queueflow-sdk-python). **Package**: [PyPI](https://pypi.org/project/queueflow/), version 0.4.0.
 
 ## Install
 
 ```bash
-pip install queueflow==0.3.0
+pip install queueflow==0.4.0
 ```
 
 ## Quick start

@@ -48,14 +48,14 @@ Rules that make this safe:
 
 | Endpoint | 200 when | 503 when |
 | --- | --- | --- |
-| `GET /health` | The process is up and can reach the database. Body: `{"status":"ok","timestamp":…,"version":"0.4.0"}`. | The database is unreachable. |
+| `GET /health` | The process is up and can reach the database. Body: `{"status":"ok","timestamp":…,"version":"0.5.0"}`. | The database is unreachable. |
 | `GET /ready` | The server is ready to take traffic. | Not ready. |
 
 Neither requires a token. Point liveness at `/health` and readiness at `/ready`.
 
 ```yaml
 # Kubernetes container snippet
-image: ghcr.io/elision-labs/queueflow:0.4
+image: ghcr.io/elision-labs/queueflow:0.5
 args: ["serve", "--mode", "api"]
 env:
   - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: queueflow, key: database-url } } }
@@ -150,7 +150,7 @@ services:
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U queueflow"], interval: 2s, timeout: 2s, retries: 30 }
 
   api:
-    image: ghcr.io/elision-labs/queueflow:0.4
+    image: ghcr.io/elision-labs/queueflow:0.5
     command: serve --mode api --api-keys ${QUEUEFLOW_API_KEYS} --worker-token ${QUEUEFLOW_WORKER_TOKEN} --cors-origins https://app.example.com
     environment: { DATABASE_URL: postgres://queueflow:queueflow@postgres:5432/queueflow, RUST_LOG: info }
     ports: [ "8000:8000" ]
@@ -158,7 +158,7 @@ services:
     deploy: { replicas: 2 }
 
   worker:
-    image: ghcr.io/elision-labs/queueflow:0.4
+    image: ghcr.io/elision-labs/queueflow:0.5
     # worker mode has no HTTP API, so it needs no credentials and no --dev.
     command: serve --mode worker --workers 20 --retention-hours 168
     environment: { DATABASE_URL: postgres://queueflow:queueflow@postgres:5432/queueflow, RUST_LOG: info }

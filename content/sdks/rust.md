@@ -7,10 +7,10 @@ Rust has the deepest integration because the engine is written in it. Choose by 
 
 | Crate | Use it when | Version |
 | --- | --- | --- |
-| [`queueflow-sdk`](https://crates.io/crates/queueflow-sdk) | You want the same openapi-generator shape as the other SDKs (for example to share patterns across a polyglot team). Generated client plus a facade with one method per endpoint, `wait_for_*` pollers, a workflow builder, typed errors, and `run_worker`, a concurrent worker runtime with graceful stop. | 0.3.0 |
-| [`queueflow-client`](https://crates.io/crates/queueflow-client) | You talk to a running QueueFlow server from Rust and want the engine's own domain types. First-party, depends on `queueflow-core`, ships a worker runtime with automatic heartbeating. | 0.4.0 |
-| [`queueflow-core`](https://crates.io/crates/queueflow-core) | You **embed the engine** in your own binary: in-process handlers, in-memory testing, custom storage adapters. | 0.4.0 |
-| [`queueflow-api`](https://crates.io/crates/queueflow-api) | You embed the HTTP layer (the axum router and OpenAPI document) alongside an embedded engine. | 0.4.0 |
+| [`queueflow-sdk`](https://crates.io/crates/queueflow-sdk) | You want the same openapi-generator shape as the other SDKs (for example to share patterns across a polyglot team). Generated client plus a facade with one method per endpoint, `wait_for_*` pollers, a workflow builder, typed errors, and `run_worker`, a concurrent worker runtime with graceful stop. | 0.4.0 |
+| [`queueflow-client`](https://crates.io/crates/queueflow-client) | You talk to a running QueueFlow server from Rust and want the engine's own domain types. First-party, depends on `queueflow-core`, ships a worker runtime with automatic heartbeating. | 0.5.0 |
+| [`queueflow-core`](https://crates.io/crates/queueflow-core) | You **embed the engine** in your own binary: in-process handlers, in-memory testing, custom storage adapters. | 0.5.0 |
+| [`queueflow-api`](https://crates.io/crates/queueflow-api) | You embed the HTTP layer (the axum router and OpenAPI document) alongside an embedded engine. | 0.5.0 |
 
 All of them require Rust 1.96 or newer and live in the [queueflow-core](https://github.com/elision-labs/queueflow-core) workspace, except `queueflow-sdk`, which is in [queueflow-sdk-rust](https://github.com/elision-labs/queueflow-sdk-rust). The crate is `queueflow-sdk`; the bare `queueflow` crate name belongs to the server and CLI binary.
 
@@ -22,7 +22,7 @@ All of them require Rust 1.96 or newer and live in the [queueflow-core](https://
 
 ```toml
 [dependencies]
-queueflow-sdk = "0.3.0"
+queueflow-sdk = "0.4.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal"] }
 serde_json = "1"
 ```
@@ -434,7 +434,7 @@ This is also how you test code that uses QueueFlow: no Docker, no Postgres, and 
 
 ```toml
 [dependencies]
-queueflow-core = { version = "0.4", features = ["postgres"] }
+queueflow-core = { version = "0.5", features = ["postgres"] }
 ```
 
 ```rust

@@ -85,6 +85,7 @@ A job that becomes `failed` gets an entry in the dead-letter queue (DLQ). The or
 Replay semantics:
 
 - Each dead letter replays **at most once**. A second replay returns `409`.
+- To replay many, `POST /api/v1/dlq/replay` (since 0.5.0) takes a filter (`queue`, `task_name`, `created_after`, `created_before`, `limit`) and replays every **unreplayed** matching entry, oldest first. It answers with one result per entry, `{"dead_letter_id", "job_id"}` on success or `{"dead_letter_id", "error"}` when the original job was already purged by retention, plus a `replayed` count. `GET /api/v1/dlq?replayed=false` lists what is still waiting.
 - The replayed job is a **fresh, detached job**: a new id, a full retry budget, and no link to the original workflow. If the dead-lettered job was a workflow step, replaying it does not advance the workflow. Re-create the workflow instead.
 - If retention has already deleted the original job, replay returns `404`.
 

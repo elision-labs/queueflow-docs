@@ -22,7 +22,7 @@ The formula installs the prebuilt binary for your platform (macOS on Apple silic
 
 ## Prebuilt binaries
 
-Every [GitHub release](https://github.com/elision-labs/queueflow-core/releases) attaches a tarball per platform plus the OpenAPI document. For v0.4.0:
+Every [GitHub release](https://github.com/elision-labs/queueflow-core/releases) attaches a tarball per platform plus the OpenAPI document. For v0.5.0:
 
 | Asset | Platform |
 | --- | --- |
@@ -36,7 +36,7 @@ Every [GitHub release](https://github.com/elision-labs/queueflow-core/releases) 
 
 ```bash
 curl -fsSL -o queueflow.tar.gz \
-  https://github.com/elision-labs/queueflow-core/releases/download/v0.4.0/queueflow-x86_64-unknown-linux-gnu.tar.gz
+  https://github.com/elision-labs/queueflow-core/releases/download/v0.5.0/queueflow-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf queueflow.tar.gz
 sudo install -m 0755 queueflow /usr/local/bin/queueflow
 queueflow --version
@@ -55,11 +55,11 @@ This builds the `queueflow` crate from crates.io with the PostgreSQL adapter ena
 The image is published to GitHub Container Registry. Its entrypoint is the `queueflow` binary, so the container command is just the subcommand and flags:
 
 ```bash
-docker pull ghcr.io/elision-labs/queueflow:0.4
+docker pull ghcr.io/elision-labs/queueflow:0.5
 
 docker run --rm -p 8000:8000 -p 9090:9090 \
   -e DATABASE_URL=postgres://user:pass@db.example.internal:5432/queueflow \
-  ghcr.io/elision-labs/queueflow:0.4 serve --dev --mode all --workers 10
+  ghcr.io/elision-labs/queueflow:0.5 serve --dev --mode all --workers 10
 ```
 
 `--dev` enables [development mode](/concepts/auth#development-mode); without it `serve` needs `--api-keys` and/or `--jwt-secret` plus `--worker-token`, as in the Compose file below. Pin the minor tag (`0.2`) in production. A minimal Docker Compose file that brings up Postgres and the engine together:
@@ -79,7 +79,7 @@ services:
       retries: 30
 
   queueflow:
-    image: ghcr.io/elision-labs/queueflow:0.4
+    image: ghcr.io/elision-labs/queueflow:0.5
     command: >
       serve
       --mode all

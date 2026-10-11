@@ -80,6 +80,8 @@ A job is one invocation of a named task handler with a JSON payload. It lives as
 - **`retrying`**: the last attempt failed and a retry is scheduled. `scheduled_at` holds the backoff instant, so the delay survives restarts.
 - **`completed`**, **`failed`**, **`cancelled`**: terminal. Terminal jobs are never re-queued or retried. A `failed` job also gets an entry in the [dead-letter queue](/concepts/retries#the-dead-letter-queue), from which it can be replayed as a fresh job.
 
+To cancel many jobs at once, `POST /api/v1/jobs/cancel` (since 0.5.0) takes a filter instead of an id: `queue`, `task_name`, a non-terminal `status`, `created_after` and `created_before`, and a `limit` (default 100, at most the server's `--max-batch`). It cancels the oldest matching jobs first and answers `{"cancelled": n}`; repeat until `n` is below `limit` to drain a large set. Each cancellation is the same guarded transition as the single-job cancel: a job that finishes concurrently keeps its real outcome. Terminal statuses are rejected with `400`, because history is never rewritten.
+
 A job whose lease expires without a report (a crashed worker) is reclaimed by the janitor and routed through the normal failure policy. It consumes retry budget rather than crash-looping. Workers that heartbeat keep the lease alive for as long as the work takes.
 
 ## Creating a job
