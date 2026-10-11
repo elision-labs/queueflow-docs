@@ -40,4 +40,10 @@ export const NAV = [
       { slug: "examples", title: "Examples" },
     ],
   },
+  {
+    title: "Help",
+    pages: [
+      { slug: "changelog", title: "Changelog" },
+    ],
+  },
 ];

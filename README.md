@@ -9,6 +9,7 @@ npm install
 npm run build       # content + spec -> dist/
 npm run dev         # build, then serve dist/ locally
 npm run sync-spec   # refresh spec/openapi.json from the engine checkout
+npm run sync-changelog   # refresh content/changelog.md from the engine checkout
 ```
 
 ## Keeping the API reference current
@@ -20,6 +21,10 @@ The REST API reference (`/api`) and `dist/openapi.json` are generated from `spec
 3. Run `npm run build` and commit the updated `spec/openapi.json` together with any content changes.
 
 `npm run build` never reads the sibling checkout; it only uses the committed `spec/openapi.json`, so a build is reproducible from this repository alone.
+
+## Keeping the changelog current
+
+`/changelog` is rendered from `content/changelog.md`, which is a committed copy of the engine's `CHANGELOG.md` with front matter prepended and the source's H1 dropped. After a release, run `npm run sync-changelog` (it fails with an explanatory message if `../queueflow-core-rs/CHANGELOG.md` is missing) and commit the result. Do not edit `content/changelog.md` by hand; edit the engine's changelog instead.
 
 ## Social card
 
