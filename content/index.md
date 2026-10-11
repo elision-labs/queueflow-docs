@@ -12,6 +12,8 @@ Workers claim rows with `FOR UPDATE SKIP LOCKED` and own them through lease toke
 <a href="/concepts/workflows"><strong>Workflows</strong><span>Declare a DAG of steps with dependencies, context propagation, and per-step failure policies.</span></a>
 <a href="/concepts/workers"><strong>Remote workers</strong><span>The lease, heartbeat, complete, and fail protocol that lets handlers run in any language.</span></a>
 <a href="/api"><strong>REST API reference</strong><span>Every endpoint and schema, generated from the OpenAPI document the server itself emits.</span></a>
+<a href="/migrate/bullmq"><strong>Migration guides</strong><span>Concept maps and side-by-side code for moving from BullMQ, Celery, Sidekiq, or pg-boss.</span></a>
+<a href="/compare"><strong>Comparison</strong><span>QueueFlow next to River, Hatchet, Graphile Worker, pg-boss, and Temporal, including when to pick them instead.</span></a>
 </div>
 
 ## What you get
@@ -66,3 +68,5 @@ QueueFlow is MIT licensed. Source for everything is under the [elision-labs](htt
 - Writing a worker in your language: read [Remote workers](/concepts/workers) and your [SDK page](/sdks/typescript).
 - Putting it in production: read [Configuration](/configuration), [Authentication and tenants](/concepts/auth), and [Production deployment](/deployment).
 - Curious how it works: read [How it works](/internals).
+- Coming from another queue: read the migration guide for [BullMQ](/migrate/bullmq), [Celery](/migrate/celery), [Sidekiq](/migrate/sidekiq), or [pg-boss](/migrate/pg-boss), or the [comparison](/compare) with River, Hatchet, Graphile Worker, pg-boss, and Temporal.
+- Something is not working: read [Troubleshooting](/troubleshooting) and the [FAQ](/faq). Release notes are in the [changelog](/changelog).
