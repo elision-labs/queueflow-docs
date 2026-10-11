@@ -245,3 +245,6 @@ td code { white-space: nowrap; }
   .brand span:not(.brand-docs) { display: none; }
   .code pre { font-size: 12.5px; padding-left: 14px; padding-right: 14px; padding-bottom: 14px; }
 }
+
+/* Screenshots */
+.doc img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; margin: 8px 0 20px; display: block; }

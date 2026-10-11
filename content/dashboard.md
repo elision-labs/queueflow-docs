@@ -5,12 +5,24 @@ description: The read-only web dashboard built into the QueueFlow server at /ui/
 
 Since 0.3.0 the server serves a web dashboard at `/ui/` on the API port, for example `http://localhost:8000/ui/`. It is embedded in the binary, needs no build step or extra service, and is read-only: it shows what the API exposes and performs no actions.
 
+![The overview: per-queue backlog with the age of the oldest claimable job, and tenant-wide totals](/img/dashboard/overview.jpg)
+
 ## What it shows
 
 - **Queues**: per-queue backlog from `GET /api/v1/queues` (claimable, scheduled for later, running, and the age of the oldest claimable job), with tenant-wide totals from `GET /api/v1/stats`. Refreshes every 5 seconds with a pause toggle.
 - **Jobs**: filter by status, queue, and creation time; keyset paging, newest first. The detail view shows status, timestamps, config, payload and result as JSON, the error message, retry count and next retry, and a link to the owning workflow. A running job updates live over the job's SSE stream.
+
+![The jobs list, filtered and paged, with status badges and retry counts](/img/dashboard/jobs.jpg)
+
+![A running job's detail page: payload, config, timeline, and a live indicator](/img/dashboard/job-detail.jpg)
 - **Workflows**: list with a status filter; the detail view draws the dependency graph with each step coloured by its state, plus a steps table and the shared context.
+
+![A running workflow: the dependency graph with completed steps in green and the shipping step still running](/img/dashboard/workflow.jpg)
+
+![A partially failed workflow: the failed step is red and the dependents that continued past it are shown](/img/dashboard/partially-failed.jpg)
 - **Dead letters**: list and detail with the reason, error, and a link to the original job.
+
+![The dead-letter list: reason, task, queue, error, and a link to the original job](/img/dashboard/dead-letters.jpg)
 - **Cron**: every schedule with its expression, next run, last enqueue, and whether it is enabled.
 - **Tasks**: the handlers registered in the server.
 
