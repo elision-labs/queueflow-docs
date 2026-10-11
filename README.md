@@ -21,6 +21,10 @@ The REST API reference (`/api`) and `dist/openapi.json` are generated from `spec
 
 `npm run build` never reads the sibling checkout; it only uses the committed `spec/openapi.json`, so a build is reproducible from this repository alone.
 
+## Social card
+
+`public/og.png` (1200x630) is referenced by the `og:image` and `twitter:image` tags on every page. It is rendered from `public/og.svg`; regenerate it with `npx --yes @resvg/resvg-js-cli --fit-width 1200 public/og.svg public/og.png` after editing the SVG.
+
 ## Content conventions
 
 - Every page is `content/<slug>.md` with a front matter block (`title`, `description`) and must be listed in `scripts/nav.mjs`; the build fails on a nav entry with no page.

@@ -2,7 +2,7 @@
 //
 // content/**/*.md  -> dist/**/*.html   (Markdown with a small front matter block)
 // spec/openapi.json -> dist/api.html + dist/openapi.json  (API reference, generated)
-// public/*          -> dist/*
+// public/*          -> dist/*   (styles, script, favicon, og.png social card)
 //
 // No framework: marked for Markdown, highlight.js for code, one HTML template.
 
@@ -162,7 +162,15 @@ function page({ slug, title, description, html, toc, section }) {
 <meta property="og:description" content="${escapeHtml(description)}">
 <meta property="og:type" content="article">
 <meta property="og:url" content="${url}">
-<meta name="twitter:card" content="summary">
+<meta property="og:site_name" content="QueueFlow Docs">
+<meta property="og:image" content="${SITE}/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="QueueFlow: PostgreSQL-native job queue and DAG workflow engine">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${escapeHtml(fullTitle)}">
+<meta name="twitter:description" content="${escapeHtml(description)}">
+<meta name="twitter:image" content="${SITE}/og.png">
 <link rel="canonical" href="${url}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/styles.css">
