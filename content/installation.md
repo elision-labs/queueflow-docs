@@ -13,17 +13,21 @@ The server, the in-process workers, the migrations, and the CLI client all ship 
 
 ## Prebuilt binaries
 
-Every [GitHub release](https://github.com/elision-labs/queueflow-core/releases) attaches a tarball per platform plus the OpenAPI document. For v0.2.0:
+Every [GitHub release](https://github.com/elision-labs/queueflow-core/releases) attaches a tarball per platform plus the OpenAPI document. For v0.3.0:
 
 | Asset | Platform |
 | --- | --- |
 | `queueflow-aarch64-apple-darwin.tar.gz` | macOS on Apple silicon |
+| `queueflow-x86_64-apple-darwin.tar.gz` | macOS on Intel (since 0.3.0) |
 | `queueflow-x86_64-unknown-linux-gnu.tar.gz` | Linux x86-64 (glibc) |
+| `queueflow-x86_64-unknown-linux-musl.tar.gz` | Linux x86-64, static (Alpine and scratch images; since 0.3.0) |
+| `queueflow-aarch64-unknown-linux-gnu.tar.gz` | Linux arm64 (glibc; since 0.3.0) |
+| `queueflow-x86_64-pc-windows-msvc.zip` | Windows x86-64 (since 0.3.0) |
 | `openapi.json`, `openapi.yaml` | The API spec this release serves |
 
 ```bash
 curl -fsSL -o queueflow.tar.gz \
-  https://github.com/elision-labs/queueflow-core/releases/download/v0.2.0/queueflow-x86_64-unknown-linux-gnu.tar.gz
+  https://github.com/elision-labs/queueflow-core/releases/download/v0.3.0/queueflow-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf queueflow.tar.gz
 sudo install -m 0755 queueflow /usr/local/bin/queueflow
 queueflow --version
@@ -42,11 +46,11 @@ This builds the `queueflow` crate from crates.io with the PostgreSQL adapter ena
 The image is published to GitHub Container Registry. Its entrypoint is the `queueflow` binary, so the container command is just the subcommand and flags:
 
 ```bash
-docker pull ghcr.io/elision-labs/queueflow:0.2
+docker pull ghcr.io/elision-labs/queueflow:0.3
 
 docker run --rm -p 8000:8000 -p 9090:9090 \
   -e DATABASE_URL=postgres://user:pass@db.example.internal:5432/queueflow \
-  ghcr.io/elision-labs/queueflow:0.2 serve --dev --mode all --workers 10
+  ghcr.io/elision-labs/queueflow:0.3 serve --dev --mode all --workers 10
 ```
 
 `--dev` enables [development mode](/concepts/auth#development-mode); without it `serve` needs `--api-keys` and/or `--jwt-secret` plus `--worker-token`, as in the Compose file below. Pin the minor tag (`0.2`) in production. A minimal Docker Compose file that brings up Postgres and the engine together:
@@ -66,7 +70,7 @@ services:
       retries: 30
 
   queueflow:
-    image: ghcr.io/elision-labs/queueflow:0.2
+    image: ghcr.io/elision-labs/queueflow:0.3
     command: >
       serve
       --mode all

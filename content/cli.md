@@ -116,5 +116,5 @@ queueflow spec --output-dir ./spec
 
 ```bash
 docker run --rm -e QUEUEFLOW_SERVER_URL=http://host.docker.internal:8000 -e QUEUEFLOW_TOKEN=dev \
-  ghcr.io/elision-labs/queueflow:0.2 job list --limit 5
+  ghcr.io/elision-labs/queueflow:0.3 job list --limit 5
 ```
