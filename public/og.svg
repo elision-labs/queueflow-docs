@@ -9,14 +9,14 @@
   </defs>
   <g transform="translate(96 150) scale(4.5)">
     <rect width="32" height="32" rx="7" fill="#1f2530"/>
-    <circle cx="9" cy="16" r="3" fill="#34d399"/>
-    <circle cx="23" cy="9" r="3" fill="#34d399"/>
-    <circle cx="23" cy="23" r="3" fill="#34d399"/>
-    <path d="M11.5 14.5 20.5 10M11.5 17.5 20.5 22" stroke="#34d399" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="9" cy="16" r="3" fill="#5cc0c4"/>
+    <circle cx="23" cy="9" r="3" fill="#5cc0c4"/>
+    <circle cx="23" cy="23" r="3" fill="#5cc0c4"/>
+    <path d="M11.5 14.5 20.5 10M11.5 17.5 20.5 22" stroke="#5cc0c4" stroke-width="2" stroke-linecap="round"/>
   </g>
   <text x="272" y="238" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="92" font-weight="700" fill="#f3f4f6">QueueFlow</text>
   <text x="96" y="372" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="40" fill="#d1d5db">PostgreSQL-native job queue and DAG workflow engine</text>
   <text x="96" y="428" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="30" fill="#9ca3af">Durable jobs, retries, and cron on the Postgres you already run.</text>
   <text x="96" y="470" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="30" fill="#9ca3af">No Redis, no broker, no extensions. MIT licensed.</text>
-  <text x="96" y="548" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="28" fill="#34d399">docs.queueflow.dev</text>
+  <text x="96" y="548" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="28" fill="#5cc0c4">docs.queueflow.dev</text>
 </svg>
