@@ -11,6 +11,15 @@ The server, the in-process workers, the migrations, and the CLI client all ship 
 - **Rust 1.96 or newer** only if you build from source or use `cargo install`.
 - **Docker** only if you use the image or run the opt-in spec validation and SDK generation in the repository.
 
+## Homebrew (macOS and Linux)
+
+```bash
+brew install elision-labs/tap/queueflow
+queueflow --version
+```
+
+The formula installs the prebuilt binary for your platform (macOS on Apple silicon and Intel, Linux x86-64 and arm64) from the GitHub release. The tap lives at [elision-labs/homebrew-tap](https://github.com/elision-labs/homebrew-tap).
+
 ## Prebuilt binaries
 
 Every [GitHub release](https://github.com/elision-labs/queueflow-core/releases) attaches a tarball per platform plus the OpenAPI document. For v0.3.0:
