@@ -52,6 +52,9 @@ export const NAV = [
   {
     title: "Help",
     pages: [
+      { slug: "troubleshooting", title: "Troubleshooting" },
+      { slug: "faq", title: "FAQ" },
+      { slug: "compare", title: "Comparison with other queues" },
       { slug: "changelog", title: "Changelog" },
     ],
   },

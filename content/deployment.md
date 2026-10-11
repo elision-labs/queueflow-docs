@@ -114,6 +114,8 @@ Migrations are idempotent and run on startup by default, so a rolling restart on
 - [ ] `DATABASE_URL` in a secret store, not in the image.
 - [ ] Startup logs free of development-mode warnings (they only appear with `--dev`).
 
+When something misbehaves after deployment, [Troubleshooting](/troubleshooting) covers the startup refusal, `401` versus `403`, jobs that stay `pending`, lease expiry, poolers that strip `LISTEN/NOTIFY`, the Swagger UI, and CORS.
+
 ## Example: Docker Compose with a split topology
 
 ```yaml
