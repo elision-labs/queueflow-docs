@@ -22,7 +22,7 @@ The formula installs the prebuilt binary for your platform (macOS on Apple silic
 
 ## Prebuilt binaries
 
-Every [GitHub release](https://github.com/elision-labs/queueflow-core/releases) attaches a tarball per platform plus the OpenAPI document. For v0.3.0:
+Every [GitHub release](https://github.com/elision-labs/queueflow-core/releases) attaches a tarball per platform plus the OpenAPI document. For v0.4.0:
 
 | Asset | Platform |
 | --- | --- |
