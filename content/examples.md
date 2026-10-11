@@ -7,6 +7,8 @@ description: Two complete, runnable applications. Ship-It, an order pipeline wit
 
 [elision-labs/queueflow-shipit-demo](https://github.com/elision-labs/queueflow-shipit-demo), live at [demo.queueflow.dev](https://demo.queueflow.dev).
 
+The demo's engine also exposes its [dashboard](/dashboard) at [dashboard.demo.queueflow.dev/ui/](https://dashboard.demo.queueflow.dev/ui/). Sign in with the public read-only viewer key `shipit-viewer-d01b178cfd69`: it can see every order pipeline, job, dead letter, and cron schedule for the demo tenant and cannot change anything.
+
 A tiny storefront where every order is a workflow. Place one and watch it move through a seven-step DAG executed by a **Node worker** and a **Python worker** against one QueueFlow engine. The app has no database of its own: everything the UI shows comes from the engine's API through `@queueflow/sdk` and the Python `queueflow` package.
 
 ```text
