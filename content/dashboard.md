@@ -30,6 +30,8 @@ Since 0.3.0 the server serves a web dashboard at `/ui/` on the API port, for exa
 
 The dashboard asks for a bearer token once and keeps it in the browser's session storage, then calls the same-origin `/api/v1` endpoints with it. Use a **tenant** credential (an API key or JWT); the worker token is refused on these routes. Everything shown is scoped to that tenant. In `--dev` mode any non-empty token works.
 
+Because the dashboard only reads, a [read-only key](/concepts/auth#static-api-keys) (`viewer:acme:ro`, since 0.4.0) is the right credential to hand out for it: it can see everything for its tenant and change nothing, even if someone takes it out of the browser and calls the API directly.
+
 The static files under `/ui/` are served without authentication and contain no data. They are not part of the OpenAPI document.
 
 ## Limits

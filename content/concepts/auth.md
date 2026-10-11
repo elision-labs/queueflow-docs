@@ -19,6 +19,14 @@ queueflow serve --api-keys "k_acme_9f3a:acme,k_globex_c21d:globex"
 
 Each entry is `token:tenant`. The token is sent as the bearer value and maps to that tenant. Keys are read at startup, so rotating one means restarting the server. Good for a small, fixed set of internal services.
 
+Since 0.4.0 a third field makes a key **read-only**:
+
+```bash
+queueflow serve --api-keys "k_acme_9f3a:acme,viewer_acme_7b1e:acme:ro"
+```
+
+A read-only key may call every `GET` route for its tenant, including the SSE job stream and the [dashboard](/dashboard), and receives `403` on anything that writes (`POST` and `DELETE`). The check runs in the auth middleware before any handler, so a refused write has no side effects. Use read-only keys for dashboards, support staff, and status pages; `:rw` is accepted as an explicit spelling of the default.
+
 ### HS256 JWTs
 
 ```bash
@@ -30,6 +38,12 @@ Any token that verifies with the secret is accepted. The `sub` claim is the tena
 ```python
 import jwt, time
 token = jwt.encode({"sub": "acme", "exp": int(time.time()) + 3600}, SECRET, algorithm="HS256")
+```
+
+A JWT can be read-only too (since 0.4.0): add a `scope` claim. A space-separated scope list that names `read` and not `write` makes the token read-only; no `scope` claim, or one that includes `write`, keeps full access.
+
+```python
+viewer = jwt.encode({"sub": "acme", "exp": int(time.time()) + 3600, "scope": "read"}, SECRET, algorithm="HS256")
 ```
 
 Only HS256 is supported today; asymmetric keys and JWKS are on the roadmap.
