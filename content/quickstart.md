@@ -24,7 +24,7 @@ Pick one. All three start the REST API on port 8000, Prometheus metrics on port 
 docker run --rm -p 8000:8000 -p 9090:9090 \
   --add-host=host.docker.internal:host-gateway \
   -e DATABASE_URL=postgres://postgres:postgres@host.docker.internal:5432/postgres \
-  ghcr.io/elision-labs/queueflow:0.3 serve --dev
+  ghcr.io/elision-labs/queueflow:0.4 serve --dev
 ```
 
 The `--add-host` flag is only needed on Linux; Docker Desktop on macOS and Windows resolves `host.docker.internal` on its own.
@@ -46,7 +46,7 @@ Confirm it is up:
 
 ```bash
 curl -s http://localhost:8000/health
-# {"status":"ok","timestamp":"…","version":"0.3.0"}
+# {"status":"ok","timestamp":"…","version":"0.4.0"}
 ```
 
 The interactive Swagger UI is at <http://localhost:8000/docs>.
