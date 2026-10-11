@@ -43,6 +43,7 @@ export const NAV = [
     title: "Reference",
     pages: [
       { slug: "api", title: "REST API" },
+      { slug: "dashboard", title: "Dashboard" },
       { slug: "deployment", title: "Production deployment" },
       { slug: "internals", title: "How it works" },
       { slug: "benchmarks", title: "Benchmarks" },

@@ -72,7 +72,26 @@ readinessProbe: { httpGet: { path: /ready,  port: http }, periodSeconds: 5 }
 
 ## Metrics
 
-Prometheus metrics are served on `--metrics-port` (default 9090) at `/metrics`, with no authentication. Engine counters:
+Prometheus metrics are served on `--metrics-port` (default 9090) at `/metrics`, with no authentication. Three kinds of series are exposed.
+
+**Per-queue gauges** (since 0.3.0) are read from the database on every scrape, so they are fleet-wide, survive restarts, and are identical on every replica. Scrape one replica or use `max()` rather than `sum()` across them.
+
+| Metric | Meaning |
+| --- | --- |
+| `queueflow_queue_pending_jobs{queue}` | Claimable now: `pending` or `retrying` with `scheduled_at` in the past. |
+| `queueflow_queue_scheduled_jobs{queue}` | Waiting for a future `scheduled_at` (a `run_at` job or a backoff retry). |
+| `queueflow_queue_running_jobs{queue}` | Leased by a worker right now. |
+| `queueflow_queue_oldest_pending_age_seconds{queue}` | Seconds the oldest claimable job has waited. The signal to alert on: it grows when workers cannot keep up and is independent of queue size. |
+| `queueflow_store_up` | `1` when the scrape could read the database, `0` when it could not (the gauges above are then absent). |
+
+**Latency histograms** (since 0.3.0) cover handlers running inside the server binary; remote workers over the HTTP protocol are not observed by them.
+
+| Metric | Meaning |
+| --- | --- |
+| `queueflow_handler_duration_seconds` | Wall time a handler spent running a job. |
+| `queueflow_job_queue_wait_seconds` | Time from a job becoming due to an in-process worker claiming it. |
+
+**Engine counters** are per process and reset on restart:
 
 | Metric | Meaning |
 | --- | --- |
@@ -83,9 +102,13 @@ Prometheus metrics are served on `--metrics-port` (default 9090) at `/metrics`, 
 | `queueflow_jobs_dead_lettered_total` | Jobs that gave up. |
 | `queueflow_workflows_created_total`, `queueflow_workflows_completed_total`, `queueflow_workflows_failed_total` | Workflow counterparts. |
 
-Counters are per process. For fleet-wide or historical numbers, query the database: `SELECT status, count(*) FROM queueflow.jobs GROUP BY 1` and friends. `GET /api/v1/stats` is different in scope: it returns job and workflow counts for the calling tenant, so it is what an application shows its own users rather than an operator's view of the fleet.
+For historical numbers beyond what Prometheus retains, query the database: `SELECT status, count(*) FROM queueflow.jobs GROUP BY 1` and friends. `GET /api/v1/stats` and `GET /api/v1/queues` are different in scope: they return counts for the calling tenant, so they are what an application shows its own users rather than an operator's view of the fleet.
 
-Useful alerts: dead letters increasing (`rate(queueflow_jobs_dead_lettered_total[5m]) > 0`), the oldest claimable job's age (from SQL: `min(scheduled_at) WHERE status IN ('pending','retrying') AND scheduled_at <= now()`), and `/health` returning 503.
+Useful alerts: `max(queueflow_queue_oldest_pending_age_seconds) > 300` (work is piling up somewhere), `min(queueflow_store_up) == 0` (the metrics endpoint cannot reach the database), `rate(queueflow_jobs_dead_lettered_total[5m]) > 0`, and `/health` returning 503. An importable Grafana dashboard with these panels and alert expressions lives in the core repository under [`deploy/grafana`](https://github.com/elision-labs/queueflow-core/tree/main/deploy/grafana).
+
+## Deployment assets
+
+The core repository ships ready-made configuration under [`deploy/`](https://github.com/elision-labs/queueflow-core/tree/main/deploy): a root `docker-compose.yml` (Postgres plus the server, credentials from `.env`), a Helm chart (`deploy/helm/queueflow`, single or split api/worker deployments, migration job, HPA, ServiceMonitor), `deploy/fly/fly.toml` for Fly.io, a `render.yaml` Blueprint for Render, a Railway runbook, and a Homebrew formula for the CLI. Each directory has its own README.
 
 ## Logging
 

@@ -13,7 +13,8 @@ Every option of `queueflow serve` is available as a command-line flag and as an 
 | `--database-url` | `DATABASE_URL` | required | PostgreSQL connection string, for example `postgres://user:pass@host:5432/db`. |
 | `--api-port` | `QUEUEFLOW_API_PORT` | `8000` | Port for the REST API, Swagger UI, and probes. |
 | `--metrics-port` | `QUEUEFLOW_METRICS_PORT` | `9090` | Port for the Prometheus `/metrics` endpoint. |
-| `--workers` | `QUEUEFLOW_WORKERS` | `10` | Number of concurrent in-process workers on the default queue. |
+| `--workers` | `QUEUEFLOW_WORKERS` | `10` | Number of concurrent in-process workers per queue. |
+| `--queues` | `QUEUEFLOW_QUEUES` | the default queue | Comma-separated queues the in-process workers drain; each gets `--workers` workers. Since 0.3.0. Earlier versions drain only `--default-queue`. |
 | `--default-queue` | `QUEUEFLOW_DEFAULT_QUEUE` | `default` | Queue used when a job, cron schedule, or workflow step does not name one. Workflow steps always run here. |
 | `--dev` | `QUEUEFLOW_DEV` | off | Development mode. Any non-empty bearer token authenticates as the fixed tenant `tenant1`, and the worker-protocol endpoints accept any authenticated caller. Lets `serve` start without the three credentials below, with loud startup warnings. Never set it in production. |
 | `--worker-token` | `QUEUEFLOW_WORKER_TOKEN` | unset | Credential required by the worker-protocol endpoints (lease, heartbeat, complete, fail). Required in `api` and `all` mode unless `--dev` is set. |
@@ -21,8 +22,23 @@ Every option of `queueflow serve` is available as a command-line flag and as an 
 | `--api-keys` | `QUEUEFLOW_API_KEYS` | unset | Static tenant API keys as comma-separated `token:tenant` pairs, for example `k1:acme,k2:globex`. In `api` and `all` mode at least one of this and `--jwt-secret` is required unless `--dev` is set. |
 | `--cors-origins` | `QUEUEFLOW_CORS_ORIGINS` | unset | Comma-separated list of origins allowed by CORS. Unset means permissive CORS (development mode). |
 | `--max-db-connections` | `QUEUEFLOW_MAX_DB_CONNECTIONS` | `50` | Upper bound on the connection pool. |
-| `--auto-migrate` | `QUEUEFLOW_AUTO_MIGRATE` | `true` | Apply embedded migrations on startup. Set the environment variable to `false` to manage migrations with `queueflow migrate` instead. |
+| `--auto-migrate` | `QUEUEFLOW_AUTO_MIGRATE` | `true` | Apply embedded migrations on startup. Pass `--auto-migrate false` (or set the environment variable to `false`) to manage migrations with `queueflow migrate` instead. |
 | `--retention-hours` | `QUEUEFLOW_RETENTION_HOURS` | unset | Delete terminal jobs, workflows, and dead letters older than this many hours. Unset keeps history forever. |
+| `--retention-interval-secs` | `QUEUEFLOW_RETENTION_INTERVAL_SECS` | `3600` | Cadence of the retention sweep (only with `--retention-hours`). Since 0.3.0. |
+| `--max-batch` | `QUEUEFLOW_MAX_BATCH` | `1000` | Maximum jobs accepted by one `POST /api/v1/jobs/batch`. Since 0.3.0. |
+
+## Tuning
+
+These were fixed constants before 0.3.0. The defaults suit most deployments; change them only with a measured reason.
+
+| Flag | Environment variable | Default | Meaning |
+| --- | --- | --- | --- |
+| `--lease-secs` | `QUEUEFLOW_LEASE_SECS` | `30` | Lease an in-process worker takes when it claims a job. Stretched automatically to cover the job's `timeout` plus `--lease-grace-secs`, so a long handler never outlives its lease. |
+| `--lease-grace-secs` | `QUEUEFLOW_LEASE_GRACE_SECS` | `30` | Headroom added to a job's timeout when a claim covers it. Larger values tolerate slow terminal writes after a long handler; smaller values let the janitor reclaim a crashed worker's job sooner. |
+| `--worker-poll-secs` | `QUEUEFLOW_WORKER_POLL_SECS` | `5` | Upper bound on how long an idle worker parks before re-checking its queue. `LISTEN/NOTIFY` wakes workers immediately; this only bounds a missed notification, for example behind a transaction-pooling PgBouncer where `LISTEN` is unavailable. |
+| `--janitor-interval-secs` | `QUEUEFLOW_JANITOR_INTERVAL_SECS` | `5` | Cadence of the expired-lease reclaim, workflow self-heal, and cron sweeps. |
+| `--janitor-batch` | `QUEUEFLOW_JANITOR_BATCH` | `100` | Rows handled per janitor sweep. |
+| `--reclaim-lease-secs` | `QUEUEFLOW_RECLAIM_LEASE_SECS` | `60` | Lease the janitor takes on a reclaimed job while routing it through the failure policy. |
 
 Logging uses `tracing` with JSON output and an `env-filter`, so `RUST_LOG=info` or `RUST_LOG=queueflow=debug,sqlx=warn` controls verbosity.
 
