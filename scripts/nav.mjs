@@ -31,6 +31,15 @@ export const NAV = [
     ],
   },
   {
+    title: "Migration guides",
+    pages: [
+      { slug: "migrate/bullmq", title: "From BullMQ" },
+      { slug: "migrate/celery", title: "From Celery" },
+      { slug: "migrate/sidekiq", title: "From Sidekiq" },
+      { slug: "migrate/pg-boss", title: "From pg-boss" },
+    ],
+  },
+  {
     title: "Reference",
     pages: [
       { slug: "api", title: "REST API" },
