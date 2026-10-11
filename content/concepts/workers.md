@@ -5,7 +5,7 @@ description: The HTTP protocol that lets job handlers run in any language, with 
 
 QueueFlow has two execution models. **In-process handlers** are Rust functions registered in the server binary. **Remote workers** are separate processes, in any language, that lease jobs from a queue over HTTP, do the work, and report back. Both get the same guarantees: at-least-once delivery, durable retries, dead-lettering, workflow advancement, and cancellation.
 
-This page describes the protocol. The [TypeScript](/sdks/typescript#worker-qfworker) and [Rust](/sdks/rust#remote-workers-with-queueflow-client) SDKs wrap it in a ready-made worker loop; the Python and Go SDKs expose the raw calls.
+This page describes the protocol. All four SDKs wrap it in a ready-made worker loop with concurrency and graceful stop: [TypeScript](/sdks/typescript#worker-qfworker) (`qf.worker.run`), [Python](/sdks/python#worker) (`run_worker`), [Go](/sdks/go#worker) (`Run`), and [Rust](/sdks/rust#worker) (`run_worker`, or the first-party `queueflow-client` crate). Each also exposes the raw calls.
 
 ## The protocol
 
@@ -141,4 +141,19 @@ Worker::new(client, "images", WorkerOptions::default())
     .await;
 ```
 
-Python and Go expose `lease`, `heartbeat`, `complete`, and `fail` as typed calls; see their pages for the three rules restated in each language's terms.
+```python
+# Python: run_worker drains one queue on a thread pool; set the event to stop and drain.
+qf.run_worker("images", {"resize-image": resize}, stop=stop, concurrency=4)
+```
+
+```go
+// Go: Run stops when ctx is cancelled and drains in-flight handlers.
+err := qf.Run(ctx, "images", handlers, queueflow.WorkerOptions{Concurrency: 4})
+```
+
+```rust
+// Rust (queueflow-sdk): cancel opts.stop to stop and drain.
+qf.run_worker("images", handlers, WorkerOptions { concurrency: 4, ..WorkerOptions::default() }).await?;
+```
+
+Every runtime also exposes `lease`, `heartbeat`, `complete`, and `fail` as typed calls; see the SDK pages for the rules a hand-rolled loop must honour.

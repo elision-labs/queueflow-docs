@@ -119,7 +119,7 @@ Each QueueFlow process holds up to `--max-db-connections` (default 50). Budget `
 
 ### Can one worker serve several queues?
 
-In 0.2.0 a remote worker leases from one queue per `run` call, and the server's in-process workers drain only the `--default-queue`. Run one worker loop (thread, process, or container) per queue.
+A remote worker leases from one queue per `run` call in every SDK runtime. Run one worker loop (thread, task, process, or container) per queue; each loop can run several handlers at once with its `concurrency` option.
 
 ### Is there rate limiting or per-tenant quotas?
 
@@ -143,7 +143,7 @@ MIT, for the server, every crate, and every SDK.
 
 ### Which versions go together?
 
-Server and CLI 0.2.0, `queueflow-core` and `queueflow-client` 0.2.0, `@queueflow/sdk` 0.2.1, PyPI `queueflow` 0.2.2, Go SDK `v0.2.0`, and the generated Rust `queueflow-sdk` 0.2.1. Within a minor version, API and worker processes of different patch versions can share a database. See the [version table](/#components-and-versions) and the [changelog](/changelog).
+Server and CLI 0.3.0, `queueflow-core` and `queueflow-client` 0.3.0, `@queueflow/sdk` 0.3.0, PyPI `queueflow` 0.3.0, Go SDK `v0.3.0`, and the generated Rust `queueflow-sdk` 0.3.0. Within a minor version, API and worker processes of different patch versions can share a database. See the [version table](/#components-and-versions) and the [changelog](/changelog).
 
 ### Where do I report a problem?
 

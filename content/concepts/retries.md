@@ -17,7 +17,7 @@ A job's first attempt plus `max_retries` further attempts make up its budget. An
 
 A `failed` job is also dead-lettered when no handler exists for its task (`handler_not_found`).
 
-In the TypeScript and Python SDKs, raising `NonRetryableError` from a handler reports `retryable: false`. In the Rust worker runtime the handler's error type decides. Over the raw protocol, send `{"lease_token": "…", "error": "…", "retryable": false}` to `POST /api/v1/jobs/{id}/fail`.
+In the TypeScript and Python SDKs, raising `NonRetryableError` from a handler reports `retryable: false`. In Go, return `queueflow.NonRetryable(err)`; in the Rust `queueflow-sdk` runtime, return `HandlerError::non_retryable(msg)`. In the `queueflow-client` worker the handler's error type decides. Over the raw protocol, send `{"lease_token": "…", "error": "…", "retryable": false}` to `POST /api/v1/jobs/{id}/fail`.
 
 ## Backoff
 

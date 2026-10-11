@@ -58,7 +58,7 @@ Workers send this value as their bearer token. A tenant token on a worker route 
 
 This is convenient on a laptop and dangerous anywhere else. `--dev` is for the [quick start](/quickstart), local development, and test suites. Never set it in production, and never expose a `--dev` server to a network you do not control. The flag is not a partial hardening step: to leave development mode, drop it and configure all three credentials. See the [deployment checklist](/deployment#security-checklist).
 
-The SDKs reflect the same split. Each has a way to pass a separate worker credential (`workerToken` in TypeScript, `worker_token=` in Python, a second configuration in Go and Rust); when it is omitted, the tenant token is reused on worker routes, which only works against a `--dev` server.
+The SDKs reflect the same split. Each has a way to pass a separate worker credential (`workerToken` in TypeScript, `worker_token=` in Python, `Options.WorkerToken` in Go, `QueueFlowOptions::worker_token` in Rust); when it is omitted, the tenant token is reused on worker routes, which only works against a `--dev` server.
 
 ## Putting it together
 
@@ -79,7 +79,7 @@ const worker = new QueueFlow({ baseUrl, token: process.env.QUEUEFLOW_TOKEN, work
 await worker.worker.run("emails", handlers);
 ```
 
-The TypeScript SDK's `workerToken` option, the Python facade's `worker_token=` argument, and the Rust and Go clients' second configuration all exist for exactly this split.
+The TypeScript SDK's `workerToken` option, the Python facade's `worker_token=` argument, the Go SDK's `Options.WorkerToken`, and the Rust SDK's `QueueFlowOptions::worker_token` all exist for exactly this split.
 
 ## Transport security
 

@@ -95,7 +95,7 @@ await qf.worker.run(
 Differences to notice:
 
 - Handlers are keyed by task name in the handlers map, so the `switch` on `job.name` disappears. A leased job with no matching handler is failed as non-retryable and dead-lettered rather than left to block the queue.
-- `qf.worker.run` processes one job at a time per call. Run it several times (in one process or many) for concurrency; there is no `concurrency` option on the runtime.
+- `qf.worker.run` takes a `concurrency` option (default 1) that plays the role of BullMQ's `concurrency`: up to that many handlers run at once, and each lease asks for as many jobs as there are free slots. Pass a `signal` to stop; the runtime drains in-flight handlers for `drainTimeoutMs` before resolving.
 - The worker needs the server's **worker token**, passed as `workerToken` in the client options. A tenant token on the worker routes is a `403`, and `run()` throws on `401`/`403` instead of retrying. See [Authentication and tenants](/concepts/auth#the-worker-credential).
 - Throwing anything fails the attempt as retryable. Throw `NonRetryableError` (or any error with `retryable: false`) where you would have thrown `UnrecoverableError`.
 
@@ -219,11 +219,11 @@ BullMQ: `priority: 1` is the highest, larger numbers are lower, and `0` means un
 
 ### What BullMQ has that QueueFlow does not
 
-- Per-queue rate limiting and per-worker `concurrency`. QueueFlow has neither; rate limits are on the roadmap.
+- Per-queue rate limiting. QueueFlow has none yet; rate limits are on the roadmap.
 - Sandboxed processors in child processes.
 - Dynamic flows of arbitrary size.
 - A large ecosystem of dashboards (Bull Board, Taskforce.sh). QueueFlow has no web dashboard yet (in progress); use the CLI, the API, or SQL.
-- Multi-language ports (Python, and bindings for Rust, Elixir, PHP, .NET). QueueFlow's answer is the HTTP worker protocol and SDKs for TypeScript, Python, Go, and Rust, with worker runtimes in TypeScript and Python today.
+- Multi-language ports (Python, and bindings for Rust, Elixir, PHP, .NET). QueueFlow's answer is the HTTP worker protocol and SDKs for TypeScript, Python, Go, and Rust, each with a worker runtime.
 
 ### BullMQ on PostgreSQL
 

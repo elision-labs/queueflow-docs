@@ -23,7 +23,7 @@ Workers claim rows with `FOR UPDATE SKIP LOCKED` and own them through lease toke
 - **Durable retries** with fixed, linear, or exponential backoff, a delay cap, and jitter. Retries are rows scheduled in the future, not timers in memory.
 - **A dead-letter queue** for exhausted, non-retryable, and unhandled jobs, with an API to inspect and replay them.
 - **Cron schedules** from standard crontab expressions in UTC, deduplicated across servers, with pause and resume.
-- **Polyglot workers.** A lease token protocol over HTTP, with first-party clients for TypeScript, Python, Go, and Rust.
+- **Polyglot workers.** A lease token protocol over HTTP, with first-party clients and worker runtimes for TypeScript, Python, Go, and Rust.
 - **Multi-tenancy.** Tenant isolation on every job, workflow, cron, and dead-letter endpoint, with API keys or HS256 JWTs.
 - **Observability.** Prometheus metrics, structured JSON logs, health and readiness probes, and a Server-Sent Events stream of job status changes.
 - **A code-generated OpenAPI 3.1 spec.** The document is derived from the handlers and ships with every release, so clients never drift from the server.
@@ -55,10 +55,10 @@ One binary, `queueflow`, runs the API, the in-process workers, or both (`--mode 
 | Server and CLI (`queueflow`) | [crates.io](https://crates.io/crates/queueflow), [GitHub releases](https://github.com/elision-labs/queueflow-core/releases), `ghcr.io/elision-labs/queueflow` | 0.3.0 |
 | Engine as a library (`queueflow-core`) | [crates.io](https://crates.io/crates/queueflow-core) | 0.3.0 |
 | Rust client and worker runtime (`queueflow-client`) | [crates.io](https://crates.io/crates/queueflow-client) | 0.3.0 |
-| TypeScript SDK (`@queueflow/sdk`) | [npm](https://www.npmjs.com/package/@queueflow/sdk) | 0.2.1 |
-| Python SDK (`queueflow`) | [PyPI](https://pypi.org/project/queueflow/) | 0.2.2 |
-| Go SDK | [GitHub](https://github.com/elision-labs/queueflow-sdk-go) | 0.2.0 (`v0.2.0`) |
-| Rust generated SDK (`queueflow-sdk`) | [crates.io](https://crates.io/crates/queueflow-sdk) | 0.2.1 |
+| TypeScript SDK (`@queueflow/sdk`) | [npm](https://www.npmjs.com/package/@queueflow/sdk) | 0.3.0 |
+| Python SDK (`queueflow`) | [PyPI](https://pypi.org/project/queueflow/) | 0.3.0 |
+| Go SDK | [GitHub](https://github.com/elision-labs/queueflow-sdk-go) | 0.3.0 (`v0.3.0`) |
+| Rust generated SDK (`queueflow-sdk`) | [crates.io](https://crates.io/crates/queueflow-sdk) | 0.3.0 |
 
 QueueFlow is MIT licensed. Source for everything is under the [elision-labs](https://github.com/elision-labs) GitHub organization.
 
