@@ -50,6 +50,8 @@ Output is JSON, so the CLI composes with `jq`.
 | `queueflow workflow get <id>` | Fetch one workflow. |
 | `queueflow workflow list [--status s] [--limit n] [--offset n] [--include-total]` | List workflows. |
 | `queueflow workflow cancel <id>` | Cancel a workflow and its unscheduled steps. |
+| `queueflow workflow retry <id>` | Re-run a failed, partially failed or cancelled workflow from its unfinished steps. Since 0.6.0. |
+| `queueflow workflow steps <id>` | Print every step's live state (status, job, error, timestamps, fan-out progress, child workflow). Since 0.6.0. |
 | `queueflow workflow diagram <id>` | Print the DAG as a Mermaid document. |
 
 ### Dead letters

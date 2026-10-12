@@ -15,7 +15,7 @@ Since 0.3.0 the server serves a web dashboard at `/ui/` on the API port, for exa
 ![The jobs list, filtered and paged, with status badges and retry counts](/img/dashboard/jobs.jpg)
 
 ![A running job's detail page: payload, config, timeline, and a live indicator](/img/dashboard/job-detail.jpg)
-- **Workflows**: list with a status filter; the detail view draws the dependency graph with each step coloured by its state, plus a steps table and the shared context.
+- **Workflows**: list with a status filter; the detail view draws the dependency graph with each step coloured by its state (fan-out steps as hexagons, sub-workflow steps as subroutine boxes), plus a steps table with each step's kind, fan-out progress, child workflow link, start time, duration and error, the workflow's error, timeout, retry count and parent, and the shared context. A running workflow follows the workflow event stream (since 0.6.0).
 
 ![A running workflow: the dependency graph with completed steps in green and the shipping step still running](/img/dashboard/workflow.jpg)
 
@@ -36,6 +36,7 @@ With a read-write token (an ordinary API key or a JWT without `scope: read`) the
 | Job page | Cancel job | `POST /api/v1/jobs/{id}/cancel` |
 | Jobs list, with a `pending`, `retrying` or `running` status filter | Cancel matching jobs | `POST /api/v1/jobs/cancel` with the list's filters, up to 1000 jobs, oldest first. Run it again if the flash says more may remain. |
 | Workflow page | Cancel workflow | `POST /api/v1/workflows/{id}/cancel` |
+| Workflow page, when failed, partially failed or cancelled | Retry unfinished steps | `POST /api/v1/workflows/{id}/retry` (since 0.6.0) |
 | Dead letters, each unreplayed entry and its page | Replay | `POST /api/v1/dlq/{id}/replay` |
 | Cron, each schedule | Pause / Resume | `POST /api/v1/cron/{id}/pause` and `/resume` |
 
